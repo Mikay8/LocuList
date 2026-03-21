@@ -28,6 +28,7 @@ LocuList is a mobile app that runs on both **iOS** (iPhone/iPad) and **Android**
 
 | Term | What it means |
 |---|---|
+| **React Native Paper** | A UI component library that gives you pre-built, Material Design styled components (buttons, cards, inputs, etc.) so you don't have to build everything from scratch. |
 | **React Native** | A framework that lets you write mobile apps using JavaScript. It turns your code into real native iOS and Android components. |
 | **Expo** | A toolchain built on top of React Native that handles the hard parts (building, testing on a device, publishing) so you don't have to configure Xcode or Android Studio for day-to-day development. |
 | **npm** | Node Package Manager — the tool that downloads all the libraries (called "packages" or "dependencies") your project needs. |
@@ -154,6 +155,24 @@ LocuList/
 │   ├── icon.png      # App icon
 │   └── splash-icon.png
 └── node_modules/     # Downloaded packages (never edit this)
+```
+
+### UI component library
+
+This project uses **React Native Paper** for pre-built Material Design components. `App.js` wraps the entire app in two required providers:
+
+- `<SafeAreaProvider>` — ensures content stays within the safe area of the screen (away from notches and home indicators).
+- `<PaperProvider>` — makes all Paper components available and applies the theme.
+
+You can use any Paper component inside these providers. Browse the full list at [reactnativepaper.com](https://reactnativepaper.com).
+
+**Example — using a Paper Button:**
+```js
+import { Button } from 'react-native-paper';
+
+<Button mode="contained" onPress={() => console.log('Pressed')}>
+  Press me
+</Button>
 ```
 
 ### Where to start coding

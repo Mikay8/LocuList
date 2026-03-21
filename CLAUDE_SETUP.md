@@ -78,11 +78,29 @@ The project was already on Expo SDK 55.0.8 — the latest stable release at the 
 
 ---
 
+## 4. Install React Native Paper UI Library
+
+**User:** Install `react-native-paper` as a UI component library and configure it in `App.js`. Update `CLAUDE_SETUP.md` and `README.md`.
+
+**What was done:**
+- Ran `npx expo install react-native-paper react-native-safe-area-context` to install both packages at SDK 54 compatible versions:
+  - `react-native-paper`: `^5.15.0`
+  - `react-native-safe-area-context`: `~5.6.0` (Expo-resolved compatible version)
+- Updated `App.js` to wrap the app in the two required providers:
+  - `<SafeAreaProvider>` from `react-native-safe-area-context` — keeps content within safe screen boundaries (notches, home indicators).
+  - `<PaperProvider>` from `react-native-paper` — enables all Paper components and theming throughout the app.
+- Replaced the plain `<Text>` import from `react-native` with Paper's `<Text variant="headlineMedium">` to demonstrate Paper usage.
+- Updated `README.md` to:
+  - Add **React Native Paper** to the technology glossary table.
+  - Add a new "UI component library" subsection under Project Structure explaining the providers, how to use Paper components, and linking to the Paper docs.
+
+---
+
 ## Final Project State
 
 ```
 LocuList/
-├── App.js              # Root component
+├── App.js              # Root component (wrapped with PaperProvider + SafeAreaProvider)
 ├── index.js            # Entry point
 ├── app.json            # App metadata (name: LocuList, slug: LocuList)
 ├── package.json        # Dependencies pinned to Expo SDK 54
@@ -91,6 +109,15 @@ LocuList/
 ├── assets/             # Icon and splash screen images
 └── node_modules/       # Installed packages (not committed to git)
 ```
+
+**Key dependencies:**
+| Package | Version | Purpose |
+|---|---|---|
+| `expo` | `~54.0.33` | Core Expo SDK |
+| `react-native` | `0.81.5` | React Native runtime |
+| `react-native-paper` | `^5.15.0` | Material Design UI components |
+| `react-native-safe-area-context` | `~5.6.0` | Safe area insets for notches/home indicators |
+| `expo-status-bar` | `~3.0.9` | Status bar control |
 
 **To run the project:**
 ```bash
