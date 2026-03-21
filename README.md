@@ -164,7 +164,8 @@ This project uses **React Native Paper** for pre-built Material Design component
 - `<SafeAreaProvider>` — ensures content stays within the safe area of the screen (away from notches and home indicators).
 - `<PaperProvider>` — makes all Paper components available and applies the theme.
 
-You can use any Paper component inside these providers. Browse the full list at [reactnativepaper.com](https://reactnativepaper.com).
+You can use any Paper component inside these providers. Browse the full list at [reactnativepaper.com](http://oss.callstack.com/react-native-paper/docs/components/Button/).
+
 
 **Example — using a Paper Button:**
 ```js
