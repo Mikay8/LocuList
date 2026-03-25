@@ -1,45 +1,32 @@
 import * as React from 'react';
-import { PaperProvider, Text,BottomNavigation } from 'react-native-paper';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { PaperProvider, BottomNavigation } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './screens/HomeScreen';
-const MusicRoute = () => <Text>Music</Text>;
+import ExploreScreen from './screens/ExploreScreen';
 
-const AlbumsRoute = () => <Text>Albums</Text>;
-
-const RecentsRoute = () => <Text>Recents</Text>;
-
-const NotificationsRoute = () => <HomeScreen />;
 export default function App() {
-
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
-    { key: 'music', title: 'Favorites', focusedIcon: 'heart', unfocusedIcon: 'heart-outline'},
-    { key: 'albums', title: 'Albums', focusedIcon: 'album' },
-    { key: 'recents', title: 'Recents', focusedIcon: 'history' },
-    { key: 'notifications', title: 'Notifications', focusedIcon: 'bell', unfocusedIcon: 'bell-outline' },
+    { key: 'home',    title: 'Home',    focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+    { key: 'explore', title: 'Explore', focusedIcon: 'map-marker', unfocusedIcon: 'map-marker-outline' },
+  
   ]);
-    const renderScene = BottomNavigation.SceneMap({
-    music: MusicRoute,
-    albums: AlbumsRoute,
-    recents: RecentsRoute,
-    notifications: NotificationsRoute,
+
+  const renderScene = BottomNavigation.SceneMap({
+    home:    () => <HomeScreen />,
+    explore: () => <ExploreScreen />
   });
+
   return (
     <SafeAreaProvider>
-      
-        <PaperProvider>
-        
-            <BottomNavigation
-                navigationState={{ index, routes }}
-                onIndexChange={setIndex}
-                renderScene={renderScene}
-            />
-       
-            
-        </PaperProvider>
-      
+      <PaperProvider>
+        <BottomNavigation
+          navigationState={{ index, routes }}
+          onIndexChange={setIndex}
+          renderScene={renderScene}
+          
+        />
+      </PaperProvider>
     </SafeAreaProvider>
   );
 }
-
-

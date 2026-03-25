@@ -206,13 +206,36 @@ export default function HomeScreen() {
   );
 }
 ```
-
 Then import and use it in `App.js`:
 
 ```js
 import HomeScreen from './screens/HomeScreen';
 ```
+### Adding a new navigation
 
+Go to the  `App.js` file
+Import your new Screen 
+```js
+import ExploreScreen from './screens/ExploreScreen';
+```
+Update the routes  
+```js
+  const [routes] = React.useState([
+    { key: 'home',    title: 'Home',    focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+    { key: 'explore', title: 'Explore', focusedIcon: 'map-marker', unfocusedIcon: 'map-marker-outline' },
+  
+  ]);
+```
+Note you can find a list of icons at 
+[Icons](https://oss.callstack.com/react-native-paper/docs/guides/icons/)
+
+Add a mapping to your component to the scene map 
+```js
+const renderScene = BottomNavigation.SceneMap({
+    home:    () => <HomeScreen />,
+    explore: () => <ExploreScreen />
+  });
+```
 ### Adding a package
 
 ```bash
