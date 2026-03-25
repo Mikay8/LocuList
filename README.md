@@ -94,11 +94,9 @@ If you want to run the app in a simulator on your Mac instead of a real phone:
 Open a terminal and run:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Mikay8/LocuList.git
 cd LocuList
 ```
-
-Replace `<repository-url>` with the actual URL from GitHub/GitLab.
 
 ### Step 2 — Install dependencies
 
@@ -154,6 +152,11 @@ LocuList/
 ├── assets/           # Images, fonts, and other static files
 │   ├── icon.png      # App icon
 │   └── splash-icon.png
+├── components/
+├── constants/
+├── hooks/
+├── screens/ 
+├── services/  
 └── node_modules/     # Downloaded packages (never edit this)
 ```
 
