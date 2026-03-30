@@ -3,17 +3,20 @@ import { PaperProvider, BottomNavigation, Icon } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import HomeScreen from './screens/HomeScreen';
 import CreateReminderScreen from './screens/CreateReminderScreen';
+import LocationScreen from './screens/LocationScreen';
 
 export default function App() {
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
     { key: 'home',    title: 'Home',    focusedIcon: 'home', unfocusedIcon: 'home-outline' },
-    { key: 'createReminder', title: 'Create Reminder', focusedIcon: 'plus', unfocusedIcon: 'plus' }
+    { key: 'createReminder', title: 'Create Reminder', focusedIcon: 'plus', unfocusedIcon: 'plus' },
+    { key: 'location', title: 'Location', focusedIcon: 'map-marker', unfocusedIcon: 'map-marker-outline' }
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
     home:    () => <HomeScreen />,
-    createReminder: () => <CreateReminderScreen />
+    createReminder: () => <CreateReminderScreen />,
+    location: () => <LocationScreen />
   });
 
   return (
