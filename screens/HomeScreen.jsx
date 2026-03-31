@@ -1,25 +1,9 @@
 import { Text, Button, Card  } from 'react-native-paper';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { useState, useEffect, use } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function HomeScreen() {
+export default function HomeScreen({ reminders, onDelete }) {
   const insets = useSafeAreaInsets();
-  const [reminders, setReminders] = useState([]);
-
-  useEffect(() => {
-      AsyncStorage.getItem('reminders').then((existing) => {
-        setReminders(existing ? JSON.parse(existing) : []);
-      });
-    }, []);
-
-  async function handleDelete(id) {
-    const updated = reminders.filter((r) => r.id !== id);
-    setReminders(updated);
-    console.log('Deleted', id, { updated });
-    await AsyncStorage.setItem('reminders', JSON.stringify(updated));
-  }
 
   // Apply the insets as padding to ensure content stays on screen
   const insetsStyle = {
@@ -46,7 +30,7 @@ export default function HomeScreen() {
                     </Text>
                   </Card.Content>
                   <Card.Actions>
-                    <Button mode="contained" onPress={() => handleDelete(reminder.id)}>
+                    <Button mode="contained" onPress={() => onDelete(reminder)}>
                       Delete
                     </Button>
                   </Card.Actions>
