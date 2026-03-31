@@ -1,10 +1,12 @@
+import * as React from 'react';
 import { Text, Button, Card  } from 'react-native-paper';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import UpdateReminderModal from '../components/UpdateReminderModal';
 
-export default function HomeScreen({ reminders, onDelete }) {
+export default function HomeScreen({ reminders, onDelete, onUpdate }) {
   const insets = useSafeAreaInsets();
-
+  const [editingReminder, setEditingReminder] = React.useState({});
   // Apply the insets as padding to ensure content stays on screen
   const insetsStyle = {
     paddingTop: insets.top + 16, // Add some vertical padding
@@ -15,6 +17,17 @@ export default function HomeScreen({ reminders, onDelete }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
         <Text variant="headlineMedium" style={styles.header}>Welcome to LocuList!</Text>
+        {/* Modal for updating reminders */}
+        <UpdateReminderModal
+          visible={!!editingReminder.id}
+          reminder={editingReminder}
+          onSave={async (updated) => {
+            await onUpdate(updated);
+            setEditingReminder({});
+          }}
+          onClose={() => setEditingReminder({})}
+        />
+        {/* List of reminders or a message if there are none */}
         {reminders.length > 0 ? (
             reminders?.map((reminder) => (
                 <Card key={reminder.id} style={styles.card}>
@@ -30,6 +43,11 @@ export default function HomeScreen({ reminders, onDelete }) {
                     </Text>
                   </Card.Content>
                   <Card.Actions>
+                    <Button mode="contained" onPress={() => {
+                      setEditingReminder(reminder);
+                    }}>
+                      Edit
+                    </Button>
                     <Button mode="contained" onPress={() => onDelete(reminder)}>
                       Delete
                     </Button>

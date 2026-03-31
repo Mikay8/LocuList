@@ -17,7 +17,7 @@ export default function App() {
     { key: 'createReminder', title: 'Create Reminder', focusedIcon: 'plus', unfocusedIcon: 'plus' }
   ]);
 
-  const { reminders, add, remove } = useReminders();
+  const { reminders, add, remove, update } = useReminders();
   
   //This triggers a notification popup
   React.useEffect(() => {
@@ -32,7 +32,7 @@ export default function App() {
 
   // Define the scene renderer for the bottom navigation
    const renderScene = BottomNavigation.SceneMap({
-    home:    () => <HomeScreen reminders={reminders} onDelete={remove}/>,
+    home:    () => <HomeScreen reminders={reminders} onDelete={remove} onUpdate={update} />,
     createReminder: () => <CreateReminderScreen onAdd={add} />
   });
 

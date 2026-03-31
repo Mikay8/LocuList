@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { scheduleNotification, cancelNotification } from '../services/notifications';
+import { scheduleNotification, cancelNotification, updateNotification } from '../services/notifications';
 
 export function useReminders() {
   const [reminders, setReminders] = useState([]);
@@ -29,5 +29,18 @@ export function useReminders() {
     setReminders(updated);
   }
 
-  return { reminders, add, remove };
+  // Update a reminder and reschedule notification
+  async function update(reminder) {
+    const existing = reminders.find(r => r.id === reminder.id);
+    if (existing) {
+      if (existing.notifId) await cancelNotification(existing.notifId);
+      const notifId = await scheduleNotification(reminder);
+      const withNotif = { ...reminder, notifId };
+      const updated = reminders.map(r => r.id === reminder.id ? withNotif : r);
+      await AsyncStorage.setItem('reminders', JSON.stringify(updated));
+      setReminders(updated);
+    }
+  }
+
+  return { reminders, add, remove, update };
 }
