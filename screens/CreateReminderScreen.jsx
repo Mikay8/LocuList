@@ -3,15 +3,13 @@ import { Text, TextInput, Button } from 'react-native-paper';
 import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function CreateReminderScreen() {
+export default function CreateReminderScreen({ onAdd }) {
   const insets = useSafeAreaInsets();
   const [reminderName, setReminderName] = useState('');
 
   const [selectedDateTime, setSelectedDateTime] = useState(new Date());
 
-  // Android only: controls which picker is currently open
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [description, setDescription] = useState('');
@@ -32,12 +30,10 @@ export default function CreateReminderScreen() {
     };
     console.log({ reminderName, description, selectedDateTime });
  
+    // Call the onAdd prop to save the reminder and schedule notification
     try {
-      const existing = await AsyncStorage.getItem('reminders');
-      const reminders = existing ? JSON.parse(existing) : [];
-      reminders.push(newReminder);
-      await AsyncStorage.setItem('reminders', JSON.stringify(reminders));
-      console.log('Saved!', reminders);
+      await onAdd(newReminder);
+      console.log('Saved!', newReminder);
       setReminderName('');
       setDescription('');
       setSelectedDateTime(new Date());
