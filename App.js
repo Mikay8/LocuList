@@ -20,7 +20,6 @@ const Stack = createNativeStackNavigator();
 function MainTabs({ navigation }) {
   const [index, setIndex] = React.useState(0);
   const [modalNotif, setModalNotif] = React.useState(null);
-  // Define the routes for the bottom navigation
   const [routes] = React.useState([
     { key: 'home',    title: 'Home',    focusedIcon: 'home', unfocusedIcon: 'home-outline' },
     { key: 'createReminder', title: 'Create Reminder', focusedIcon: 'plus', unfocusedIcon: 'plus' },
@@ -28,8 +27,7 @@ function MainTabs({ navigation }) {
   ]);
 
   const { reminders, add, remove, update } = useReminders();
-  
-  //This triggers a notification popup
+
   React.useEffect(() => {
     requestPermissions();
     const subscription = Notifications.addNotificationReceivedListener(notification => {
@@ -40,35 +38,41 @@ function MainTabs({ navigation }) {
     return () => subscription.remove();
   }, []);
 
-  // Define the scene renderer for the bottom navigation
-   const renderScene = BottomNavigation.SceneMap({
+  const renderScene = BottomNavigation.SceneMap({
     home:    () => <HomeScreen reminders={reminders} onDelete={remove} onUpdate={update} navigation={navigation} />,
     createReminder: () => <CreateReminderScreen onAdd={add} navigation={navigation}/>,
     location: () => <LocationScreen navigation={navigation} />
-
   });
 
   return (
-    <BottomNavigation
-      navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      activeColor="#fbfbfb"
-      inactiveColor="#fbfbfb"
-      barStyle={{
-        backgroundColor: '#0073AF',
-      }}
-      activeIndicatorStyle={{
-        backgroundColor: '#2ea2e0',
-      }}
-      renderIcon={({ route, focused, color }) => (
-        <Icon
-          source={focused ? route.focusedIcon : route.unfocusedIcon}
-          color={color}
-          size={25}
-        />
-      )}
-    />
+    <>
+      <ReminderModal
+        visible={!!modalNotif}
+        title={modalNotif?.title}
+        body={modalNotif?.body}
+        onClose={() => setModalNotif(null)}
+      />
+      <BottomNavigation
+        navigationState={{ index, routes }}
+        onIndexChange={setIndex}
+        renderScene={renderScene}
+        activeColor="#fbfbfb"
+        inactiveColor="#fbfbfb"
+        barStyle={{
+          backgroundColor: '#0073AF',
+        }}
+        activeIndicatorStyle={{
+          backgroundColor: '#2ea2e0',
+        }}
+        renderIcon={({ route, focused, color }) => (
+          <Icon
+            source={focused ? route.focusedIcon : route.unfocusedIcon}
+            color={color}
+            size={25}
+          />
+        )}
+      />
+    </>
   );
 }
 
@@ -76,35 +80,6 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <ReminderModal
-          visible={!!modalNotif}
-          title={modalNotif?.title}
-          body={modalNotif?.body}
-          onClose={() => setModalNotif(null)}
-        />
-        <BottomNavigation
-          navigationState={{ index, routes }}
-          onIndexChange={setIndex}
-          renderScene={renderScene}
-          activeColor="#fbfbfb"
-          inactiveColor="#fbfbfb"
-          barStyle={{
-            backgroundColor: '#0073AF',
-            
-          }}
-          activeIndicatorStyle={{
-            backgroundColor: '#2ea2e0',
-            //borderRadius: 16,
-            //height: 40,
-          }}
-          renderIcon={({ route, focused, color }) => (
-            <Icon
-              source={focused ? route.focusedIcon : route.unfocusedIcon}
-              color={color}
-              size={25}
-            />
-          )}
-        />
         <LocationProvider>
           <NavigationContainer>
             <Stack.Navigator>
