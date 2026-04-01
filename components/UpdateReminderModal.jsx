@@ -77,6 +77,7 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
             onChange={(_, date) => date && setSelectedDateTime(date)}
             display="inline"
             minimumDate={new Date()}
+            themeVariant="light"
             style={styles.iosPicker}
           />
         )}
