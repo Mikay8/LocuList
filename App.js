@@ -11,6 +11,7 @@ import LocationScreen from './screens/LocationScreen';
 import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
 import { LocationProvider } from './services/location';
+import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -36,6 +37,23 @@ function MainTabs({ navigation }) {
     });
 
     return () => subscription.remove();
+  }, []);
+
+  React.useEffect(() => {
+    console.log('[Accelerometer] Starting...');
+    startAccelerometer();
+
+    const unsubscribe = onMotionChange(({ isMoving, motionType, magnitude, delta, variance }) => {
+      console.log(
+        `[Accelerometer] motionType=${motionType} | isMoving=${isMoving} | magnitude=${magnitude.toFixed(3)} | delta=${delta.toFixed(3)} | variance=${variance.toFixed(4)}`
+      );
+    });
+
+    return () => {
+      console.log('[Accelerometer] Stopping...');
+      unsubscribe();
+      stopAccelerometer();
+    };
   }, []);
 
   const renderScene = BottomNavigation.SceneMap({
