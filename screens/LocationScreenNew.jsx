@@ -1,26 +1,42 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, TextInput, Button } from 'react-native-paper';
+import * as Location from 'expo-location';
 import { useLocations } from '../services/location';
 
 export default function LocationScreenNew({ navigation }) {
 	const [title, setTitle] = useState('');
 	const [subtitle, setSubtitle] = useState('');
 	const [address, setAddress] = useState('');
+	const [saving, setSaving] = useState(false);
 	const { addLocation } = useLocations();
 
-	const saveLocation = () => {
+	const saveLocation = async () => {
 		if (!title.trim()) return;
+		setSaving(true);
+
+		let gpsCoords = null;
+		try {
+			const { status } = await Location.requestForegroundPermissionsAsync();
+			if (status === 'granted') {
+				const pos = await Location.getCurrentPositionAsync({});
+				gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+			}
+		} catch (e) {
+			console.warn('Could not get GPS coordinates:', e);
+		}
 
 		addLocation({
 			title: title.trim(),
 			subtitle: subtitle.trim(),
 			address: address.trim(),
+			location: gpsCoords,
 		});
 
 		setTitle('');
 		setSubtitle('');
 		setAddress('');
+		setSaving(false);
 		navigation.goBack();
 	};
 
@@ -52,7 +68,7 @@ export default function LocationScreenNew({ navigation }) {
 				style={styles.input}
 			/>
 
-			<Button mode="contained" onPress={saveLocation}>
+			<Button mode="contained" onPress={saveLocation} loading={saving} disabled={saving}>
 				Save Location
 			</Button>
 		</View>

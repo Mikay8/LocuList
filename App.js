@@ -2,6 +2,7 @@ import * as React from 'react';
 import { PaperProvider, BottomNavigation, Icon } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 import HomeScreen from './screens/HomeScreen';
 import CreateReminderScreen from './screens/CreateReminderScreen';
 import ReminderModal from './components/ReminderModal';
@@ -10,8 +11,9 @@ import { requestPermissions } from './services/notifications';
 import LocationScreen from './screens/LocationScreen';
 import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
-import { LocationProvider } from './services/location';
+import { LocationProvider, useLocations } from './services/location';
 import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
+import { checkMotionConditions, checkLocationConditions } from './services/reminderConditionChecker';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -28,6 +30,7 @@ function MainTabs({ navigation }) {
   ]);
 
   const { reminders, add, remove, update } = useReminders();
+  const { locations } = useLocations();
 
   React.useEffect(() => {
     requestPermissions();
@@ -39,22 +42,47 @@ function MainTabs({ navigation }) {
     return () => subscription.remove();
   }, []);
 
+  // Accelerometer — motion-based condition checks
   React.useEffect(() => {
-    console.log('[Accelerometer] Starting...');
     startAccelerometer();
 
-    const unsubscribe = onMotionChange(({ isMoving, motionType, magnitude, delta, variance }) => {
-      console.log(
-        `[Accelerometer] motionType=${motionType} | isMoving=${isMoving} | magnitude=${magnitude.toFixed(3)} | delta=${delta.toFixed(3)} | variance=${variance.toFixed(4)}`
-      );
+    const unsubscribe = onMotionChange(({ motionType }) => {
+      checkMotionConditions({ motionType, reminders });
     });
 
     return () => {
-      console.log('[Accelerometer] Stopping...');
       unsubscribe();
       stopAccelerometer();
     };
-  }, []);
+  }, [reminders]);
+
+  // Location polling — proximity-based condition checks every 30s
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function poll() {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || cancelled) return;
+        const pos = await Location.getCurrentPositionAsync({});
+        if (cancelled) return;
+        checkLocationConditions({
+          currentPosition: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+          reminders,
+          locations,
+        });
+      } catch (e) {
+        console.warn('[Location] Poll failed:', e);
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [reminders, locations]);
 
   const renderScene = BottomNavigation.SceneMap({
     home:    () => <HomeScreen reminders={reminders} onDelete={remove} onUpdate={update} navigation={navigation} />,
