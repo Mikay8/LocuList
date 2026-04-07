@@ -47,3 +47,19 @@ export async function sendImmediateNotification(reminder) {
     trigger: null,
   });
 }
+
+export async function sendLocationNearbyNotification(location, distanceMeters) {
+  const distanceText = Number.isFinite(distanceMeters)
+    ? `You are about ${distanceMeters} meters away.`
+    : 'You are near one of your saved locations.';
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `Nearby: ${location.title}`,
+      body: location.address
+        ? `${distanceText} ${location.address}`
+        : distanceText,
+    },
+    trigger: null,
+  });
+}

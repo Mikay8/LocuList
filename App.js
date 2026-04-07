@@ -14,6 +14,7 @@ import LocationScreenNew from './screens/LocationScreenNew';
 import { useLocations } from './services/location';
 import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
 import { checkConditions } from './services/reminderConditionChecker';
+import { checkSavedLocationProximity } from './services/locationProximityChecker';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -84,6 +85,7 @@ function MainTabs({ navigation }) {
         const currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         latestPosition.current = currentPosition;
         checkConditions({ motionType: latestMotionType.current, currentPosition, reminders, locations });
+        checkSavedLocationProximity({ currentPosition, locations });
       } catch (e) {
         console.warn('[Location] Poll failed:', e);
       }
