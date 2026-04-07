@@ -1,26 +1,12 @@
+import * as React from 'react';
 import { Text, Button, Card  } from 'react-native-paper';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { useState, useEffect, use } from 'react';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import UpdateReminderModal from '../components/UpdateReminderModal';
 
-export default function HomeScreen() {
+export default function HomeScreen({ reminders, onDelete, onUpdate }) {
   const insets = useSafeAreaInsets();
-  const [reminders, setReminders] = useState([]);
-
-  useEffect(() => {
-      AsyncStorage.getItem('reminders').then((existing) => {
-        setReminders(existing ? JSON.parse(existing) : []);
-      });
-    }, []);
-
-  async function handleDelete(id) {
-    const updated = reminders.filter((r) => r.id !== id);
-    setReminders(updated);
-    console.log('Deleted', id, { updated });
-    await AsyncStorage.setItem('reminders', JSON.stringify(updated));
-  }
-
+  const [editingReminder, setEditingReminder] = React.useState({});
   // Apply the insets as padding to ensure content stays on screen
   const insetsStyle = {
     paddingTop: insets.top + 16, // Add some vertical padding
@@ -31,22 +17,46 @@ export default function HomeScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
         <Text variant="headlineMedium" style={styles.header}>Welcome to LocuList!</Text>
+        {/* Modal for updating reminders */}
+        <UpdateReminderModal
+          visible={!!editingReminder.id}
+          reminder={editingReminder}
+          onSave={async (updated) => {
+            await onUpdate(updated);
+            setEditingReminder({});
+          }}
+          onClose={() => setEditingReminder({})}
+        />
+        {/* List of reminders or a message if there are none */}
         {reminders.length > 0 ? (
             reminders?.map((reminder) => (
                 <Card key={reminder.id} style={styles.card}>
                   
                   <Card.Content>
                     <Text variant="titleLarge">{reminder.reminderName}</Text>
-                    <Text variant="bodyMedium">{reminder.reminderDescription}</Text>
-                    <Text variant="bodyMedium">
-                      {new Date(reminder.dateTime).toLocaleString([], {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}
-                    </Text>
+                    <Text variant="bodyMedium">{reminder.description}</Text>
+                    {reminder.dateTime && (
+                      <Text variant="bodyMedium">
+                        {new Date(reminder.dateTime).toLocaleString([], {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </Text>
+                    )}
+                    {reminder.locationTitle && (
+                      <Text variant="bodyMedium">Location: {reminder.locationTitle}</Text>
+                    )}
+                    {reminder.activity && (
+                      <Text variant="bodyMedium">Activity: {reminder.activity}</Text>
+                    )}
                   </Card.Content>
                   <Card.Actions>
-                    <Button mode="contained" onPress={() => handleDelete(reminder.id)}>
+                    <Button mode="contained" onPress={() => {
+                      setEditingReminder(reminder);
+                    }}>
+                      Edit
+                    </Button>
+                    <Button mode="contained" onPress={() => onDelete(reminder)}>
                       Delete
                     </Button>
                   </Card.Actions>
