@@ -13,52 +13,54 @@ Linking,
 export default function LocationScreenDetail(props) {
     const navigation = props.navigation || useNavigation();
     const route = props.route || useRoute();
-    const { id, title, subtitle, address } = route.params || {};
-
+    const { title, subtitle, address, location } = route.params || {};
+    
 const resolveCoords = (loc) => {
+
     if (!loc) return null;
     const lat = loc.latitude ?? loc.lat;
     const lng = loc.longitude ?? loc.lng;
     return lat != null && lng != null ? {lat, lng} : null;
 };
 
+React.useEffect(() => {
+    console.log('[LocationScreenDetail] title:', title);
+    console.log('[LocationScreenDetail] subtitle:', subtitle);
+    console.log('[LocationScreenDetail] address:', address);
+    console.log('[LocationScreenDetail] location:', location);
+    console.log('[LocationScreenDetail] coords:', resolveCoords(location));
+}, [title, subtitle, address, location]);
+
 const openMaps = async () => {
-    if (!address) return;
-    const coords = resolveCoords(address);
+    //const coords = resolveCoords(location);
+
+    //if (!address && !coords) return;
+
    
 
     let url = '';
     if (Platform.OS === 'ios') {
-        url = address
-            ? `http://maps.apple.com/?daddr=${encodeURIComponent(address)}`
-            : `http://maps.apple.com/?daddr=${coords.lat},${coords.lng}`;
+        url = `http://maps.apple.com/?daddr=${encodeURIComponent(address)}`;
+            
     } else {
-        url = address
-            ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`
-            : `google.navigation:q=${coords.lat},${coords.lng}`;
+        url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
     }
 
     const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
         Linking.openURL(url);
     } else {
-        // fallback to universal google maps url
-        const fallback = coords
-            ? `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`
-            : address
-            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-            : null;
-        if (fallback) Linking.openURL(fallback);
+        alert('Could not open the maps application.');
     }
 };
 
 const displayLocation = () => {
-    if (!address) return 'No location provided';
+    const coords = resolveCoords(location);
+
     if (address) return address;
-    const coords = resolveCoords(address);
     
     if (coords) return `${coords.lat}, ${coords.lng}`;
-    return 'Invalid location';
+    return 'No location provided';
 };
 
 return (
@@ -73,9 +75,9 @@ return (
         <View style={styles.locationCard}>
             <Text style={styles.locationText}>{displayLocation()}</Text>
             <TouchableOpacity
-                style={[styles.button, !address && styles.buttonDisabled]}
+                style={[styles.button, !address && !location && styles.buttonDisabled]}
                 onPress={openMaps}
-                disabled={!address}>
+                disabled={!address && !location}>
                 <Text style={styles.buttonText}>Navigate</Text>
             </TouchableOpacity>
         </View>

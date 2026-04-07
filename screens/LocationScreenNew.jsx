@@ -17,27 +17,47 @@ export default function LocationScreenNew({ navigation }) {
 
 		let gpsCoords = null;
 		try {
+			const servicesEnabled = await Location.hasServicesEnabledAsync();
+			if (!servicesEnabled) {
+				throw new Error('Location services are disabled on this device or simulator.');
+			}
+
 			const { status } = await Location.requestForegroundPermissionsAsync();
-			if (status === 'granted') {
-				const pos = await Location.getCurrentPositionAsync({});
+			if (status !== 'granted') {
+				throw new Error('Location permission was not granted.');
+			}
+
+			const lastKnown = await Location.getLastKnownPositionAsync();
+			const pos = lastKnown ?? await Location.getCurrentPositionAsync({
+				accuracy: Location.Accuracy.Balanced,
+				maximumAge: 60_000,
+				timeInterval: 5_000,
+			});
+
+			if (pos?.coords) {
 				gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 			}
 		} catch (e) {
 			console.warn('Could not get GPS coordinates:', e);
 		}
 
-		addLocation({
-			title: title.trim(),
-			subtitle: subtitle.trim(),
-			address: address.trim(),
-			location: gpsCoords,
-		});
+		try {
+			await addLocation({
+				title: title.trim(),
+				subtitle: subtitle.trim(),
+				address: address.trim(),
+				location: gpsCoords,
+			});
 
-		setTitle('');
-		setSubtitle('');
-		setAddress('');
-		setSaving(false);
-		navigation.goBack();
+			setTitle('');
+			setSubtitle('');
+			setAddress('');
+			navigation.goBack();
+		} catch (e) {
+			console.warn('Could not save location:', e);
+		} finally {
+			setSaving(false);
+		}
 	};
 
 	return (
