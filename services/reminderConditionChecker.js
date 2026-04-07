@@ -1,6 +1,5 @@
 import { sendImmediateNotification } from './notifications';
 
-// Maps reminder activity dropdown values to accelerometer motionType values
 const ACTIVITY_MAP = {
   'Walking': 'walking',
   'In a Vehicle': 'driving',
@@ -9,6 +8,7 @@ const ACTIVITY_MAP = {
 
 const PROXIMITY_METERS = 200;
 const COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+const WAIT_TIME = 60_000; // don't trigger within 60s of creation
 
 // reminderId → timestamp of last fired notification
 const lastFired = new Map();
@@ -23,7 +23,7 @@ function markFired(id) {
 }
 
 // Haversine distance in meters between two { lat, lng } points
-function isNearby(a, b) {
+function distanceMeters(a, b) {
   const R = 6_371_000;
   const toRad = deg => (deg * Math.PI) / 180;
   const dLat = toRad(b.lat - a.lat);
@@ -36,30 +36,41 @@ function isNearby(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-// Called on every accelerometer motion change
-export function checkMotionConditions({ motionType, reminders }) {
+// Time-only reminders are handled by scheduled notifications, not here.
+export function checkConditions({ motionType, currentPosition, reminders, locations }) {
   for (const reminder of reminders) {
-    if (!reminder.activity) continue;
-    if (isOnCooldown(reminder.id)) continue;
-    const mapped = ACTIVITY_MAP[reminder.activity];
-    if (mapped === motionType) {
-      markFired(reminder.id);
-      sendImmediateNotification(reminder);
-    }
-  }
-}
+    const hasLocation = !!reminder.locationId;
+    const hasActivity = !!reminder.activity;
+    const hasTime = !!reminder.dateTime;
 
-// Called every 30s from the location polling loop
-export function checkLocationConditions({ currentPosition, reminders, locations }) {
-  for (const reminder of reminders) {
-    if (!reminder.locationId) continue;
+    // Time-only reminders are handled by scheduleNotification in useReminders
+    if (!hasLocation && !hasActivity) continue;
+
     if (isOnCooldown(reminder.id)) continue;
-    const loc = locations.find(l => l.id === reminder.locationId);
-    if (!loc?.location?.lat) continue;
-    const dist = isNearby(currentPosition, loc.location);
-    if (dist <= PROXIMITY_METERS) {
-      markFired(reminder.id);
-      sendImmediateNotification(reminder);
+
+    const createdAt = parseInt(reminder.id, 10);
+    if (!isNaN(createdAt) && Date.now() - createdAt < WAIT_TIME) continue;
+
+    // Time gates location/activity: don't fire before dateTime
+    if (hasTime && new Date(reminder.dateTime) > new Date()) continue;
+
+    // Check location condition
+    if (hasLocation) {
+      if (!currentPosition) continue;
+      const loc = locations.find(l => l.id === reminder.locationId);
+      if (!loc?.location?.lat) continue;
+      if (distanceMeters(currentPosition, loc.location) > PROXIMITY_METERS) continue;
     }
+
+    // Check activity condition
+    if (hasActivity) {
+      if (!motionType) continue;
+      const mapped = ACTIVITY_MAP[reminder.activity];
+      if (mapped !== motionType) continue;
+    }
+
+    // All conditions matched
+    markFired(reminder.id);
+    sendImmediateNotification(reminder);
   }
 }

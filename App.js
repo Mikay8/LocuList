@@ -13,7 +13,7 @@ import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
 import { LocationProvider, useLocations } from './services/location';
 import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
-import { checkMotionConditions, checkLocationConditions } from './services/reminderConditionChecker';
+import { checkConditions } from './services/reminderConditionChecker';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -32,6 +32,9 @@ function MainTabs({ navigation }) {
   const { reminders, add, remove, update } = useReminders();
   const { locations } = useLocations();
 
+  const latestMotionType = React.useRef('stationary');
+  const latestPosition = React.useRef(null);
+
   React.useEffect(() => {
     requestPermissions();
     const subscription = Notifications.addNotificationReceivedListener(notification => {
@@ -42,21 +45,22 @@ function MainTabs({ navigation }) {
     return () => subscription.remove();
   }, []);
 
-  // Accelerometer — motion-based condition checks
+  // Accelerometer — updates latest motion and runs condition checks
   React.useEffect(() => {
     startAccelerometer();
 
     const unsubscribe = onMotionChange(({ motionType }) => {
-      checkMotionConditions({ motionType, reminders });
+      latestMotionType.current = motionType;
+      checkConditions({ motionType, currentPosition: latestPosition.current, reminders, locations });
     });
 
     return () => {
       unsubscribe();
       stopAccelerometer();
     };
-  }, [reminders]);
+  }, [reminders, locations]);
 
-  // Location polling — proximity-based condition checks every 30s
+  // Location polling — updates latest position and runs condition checks every 30s
   React.useEffect(() => {
     let cancelled = false;
 
@@ -66,11 +70,9 @@ function MainTabs({ navigation }) {
         if (status !== 'granted' || cancelled) return;
         const pos = await Location.getCurrentPositionAsync({});
         if (cancelled) return;
-        checkLocationConditions({
-          currentPosition: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-          reminders,
-          locations,
-        });
+        const currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        latestPosition.current = currentPosition;
+        checkConditions({ motionType: latestMotionType.current, currentPosition, reminders, locations });
       } catch (e) {
         console.warn('[Location] Poll failed:', e);
       }

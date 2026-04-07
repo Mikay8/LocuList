@@ -12,9 +12,10 @@ export function useReminders() {
     });
   }, []);
 
-  // Add a new reminder and schedule notification (only if dateTime is set)
+  // Add a new reminder and schedule notification (time-only reminders only)
   async function add(reminder) {
-    const notifId = reminder.dateTime ? await scheduleNotification(reminder) : null;
+    const isTimeOnly = reminder.dateTime && !reminder.locationId && !reminder.activity;
+    const notifId = isTimeOnly ? await scheduleNotification(reminder) : null;
     const withNotif = { ...reminder, notifId };
     const updated = [...reminders, withNotif];
     await AsyncStorage.setItem('reminders', JSON.stringify(updated));
@@ -34,7 +35,8 @@ export function useReminders() {
     const existing = reminders.find(r => r.id === reminder.id);
     if (existing) {
       if (existing.notifId) await cancelNotification(existing.notifId);
-      const notifId = reminder.dateTime ? await scheduleNotification(reminder) : null;
+      const isTimeOnly = reminder.dateTime && !reminder.locationId && !reminder.activity;
+      const notifId = isTimeOnly ? await scheduleNotification(reminder) : null;
       const withNotif = { ...reminder, notifId };
       const updated = reminders.map(r => r.id === reminder.id ? withNotif : r);
       await AsyncStorage.setItem('reminders', JSON.stringify(updated));

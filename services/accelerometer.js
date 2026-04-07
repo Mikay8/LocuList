@@ -1,13 +1,15 @@
 import { Accelerometer } from 'expo-sensors';
-const MOVEMENT_THRESHOLD = 0.1;
 const UPDATE_INTERVAL = 300;
 const WINDOW_SIZE = 15;
 const WALKING_VARIANCE_THRESHOLD = 0.015;
+const WARMUP_DURATION = 5000; // ms to wait before firing events after start
 
 let subscription = null;
+let classifyInterval = null;
 let lastMagnitude = 0;
 let listeners = [];
 let magnitudeWindow = [];
+let warmingUp = false;
 
 function getMagnitude({ x, y, z }) {
 	return Math.sqrt(x * x + y * y + z * z);
@@ -20,7 +22,8 @@ function computeVariance(values) {
 }
 
 function classifyMotion(magnitude, variance) {
-	if (magnitude <= 1.05) return 'stationary';
+	if (magnitude <= 1.15) return 'stationary';
+	if (magnitudeWindow.length < WINDOW_SIZE) return 'stationary';
 	return variance >= WALKING_VARIANCE_THRESHOLD ? 'walking' : 'driving';
 }
 
@@ -33,28 +36,37 @@ export function startAccelerometer() {
 
 	Accelerometer.setUpdateInterval(UPDATE_INTERVAL);
 
+	warmingUp = true;
+	setTimeout(() => {
+		warmingUp = false;
+		magnitudeWindow = [];
+	}, WARMUP_DURATION);
+
 	subscription = Accelerometer.addListener((data) => {
 		const magnitude = getMagnitude(data);
-		const delta = Math.abs(magnitude - lastMagnitude);
-
 		magnitudeWindow.push(magnitude);
 		if (magnitudeWindow.length > WINDOW_SIZE) magnitudeWindow.shift();
-
-		if (delta > MOVEMENT_THRESHOLD) {
-			const variance = computeVariance(magnitudeWindow);
-			const motionType = classifyMotion(magnitude, variance);
-			const isMoving = motionType !== 'stationary';
-			notifyListeners({ isMoving, motionType, magnitude, delta, variance, raw: data });
-		}
-
 		lastMagnitude = magnitude;
 	});
+
+	classifyInterval = setInterval(() => {
+		if (warmingUp || magnitudeWindow.length === 0) return;
+		const magnitude = lastMagnitude;
+		const variance = computeVariance(magnitudeWindow);
+		const motionType = classifyMotion(magnitude, variance);
+		const isMoving = motionType !== 'stationary';
+		console.log('[Accelerometer]', { motionType, isMoving, magnitude: magnitude.toFixed(3), variance: variance.toFixed(4) });
+		notifyListeners({ isMoving, motionType, magnitude, variance });
+	}, 5000);
 }
 
 export function stopAccelerometer() {
 	if (subscription) {
 		subscription.remove();
 		subscription = null;
+		clearInterval(classifyInterval);
+		classifyInterval = null;
+		warmingUp = false;
 	}
 }
 
