@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { scheduleNotification, cancelNotification, updateNotification } from '../services/notifications';
+import { scheduleNotification, cancelNotification } from '../services/notifications';
 
 export function useReminders() {
   const [reminders, setReminders] = useState([]);
@@ -12,9 +12,10 @@ export function useReminders() {
     });
   }, []);
 
-  // Add a new reminder and schedule notification
+  // Add a new reminder and schedule notification (time-only reminders only)
   async function add(reminder) {
-    const notifId = await scheduleNotification(reminder);
+    const isTimeOnly = reminder.dateTime && !reminder.locationId && !reminder.activity;
+    const notifId = isTimeOnly ? await scheduleNotification(reminder) : null;
     const withNotif = { ...reminder, notifId };
     const updated = [...reminders, withNotif];
     await AsyncStorage.setItem('reminders', JSON.stringify(updated));
@@ -34,7 +35,8 @@ export function useReminders() {
     const existing = reminders.find(r => r.id === reminder.id);
     if (existing) {
       if (existing.notifId) await cancelNotification(existing.notifId);
-      const notifId = await scheduleNotification(reminder);
+      const isTimeOnly = reminder.dateTime && !reminder.locationId && !reminder.activity;
+      const notifId = isTimeOnly ? await scheduleNotification(reminder) : null;
       const withNotif = { ...reminder, notifId };
       const updated = reminders.map(r => r.id === reminder.id ? withNotif : r);
       await AsyncStorage.setItem('reminders', JSON.stringify(updated));

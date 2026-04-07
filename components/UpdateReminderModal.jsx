@@ -1,14 +1,30 @@
 import { useState } from 'react';
-import { Text, TextInput, Button } from 'react-native-paper';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Text, TextInput, Button, Menu } from 'react-native-paper';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocations } from '../services/location';
+
+const MOTION_ACTIVITIES = [
+  'Walking',
+  'In a Vehicle',
+  'Stationary',
+];
 
 export default function UpdateReminderModal({ visible, reminder, onSave, onClose }) {
   const insets = useSafeAreaInsets();
+  const { locations } = useLocations();
 
   const [reminderName, setReminderName] = useState(reminder?.reminderName ?? '');
   const [description, setDescription] = useState(reminder?.reminderDescription ?? '');
+  const [selectedLocation, setSelectedLocation] = useState(
+    reminder?.locationId ? { id: reminder.locationId, title: reminder.locationTitle } : null
+  );
+  const [locationMenuVisible, setLocationMenuVisible] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(reminder?.activity ?? null);
+  const [activityMenuVisible, setActivityMenuVisible] = useState(false);
+
+  const [showDateSection, setShowDateSection] = useState(!!reminder?.dateTime);
   const [selectedDateTime, setSelectedDateTime] = useState(
     reminder?.dateTime ? new Date(reminder.dateTime) : new Date()
   );
@@ -26,6 +42,11 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
   function handleShow() {
     setReminderName(reminder?.reminderName ?? '');
     setDescription(reminder?.reminderDescription ?? '');
+    setSelectedLocation(
+      reminder?.locationId ? { id: reminder.locationId, title: reminder.locationTitle } : null
+    );
+    setSelectedActivity(reminder?.activity ?? null);
+    setShowDateSection(!!reminder?.dateTime);
     setSelectedDateTime(reminder?.dateTime ? new Date(reminder.dateTime) : new Date());
   }
 
@@ -34,7 +55,10 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
       ...reminder,
       reminderName,
       reminderDescription: description,
-      dateTime: selectedDateTime.toISOString(),
+      dateTime: showDateSection ? selectedDateTime.toISOString() : null,
+      locationId: selectedLocation?.id ?? null,
+      locationTitle: selectedLocation?.title ?? null,
+      activity: selectedActivity,
     };
     try {
       await onSave(updated);
@@ -70,46 +94,122 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
           style={styles.input}
         />
 
-        {Platform.OS === 'ios' && (
-          <DateTimePicker
-            mode="datetime"
-            value={selectedDateTime}
-            onChange={(_, date) => date && setSelectedDateTime(date)}
-            display="inline"
-            minimumDate={new Date()}
-            themeVariant="light"
-            style={styles.iosPicker}
-          />
-        )}
+        {/* Location dropdown */}
+        <View style={styles.menuWrapper}>
+          <Menu
+            visible={locationMenuVisible}
+            onDismiss={() => setLocationMenuVisible(false)}
+            anchor={
+              <TextInput
+                label="Location (optional)"
+                value={selectedLocation?.title ?? ''}
+                mode="outlined"
+                style={styles.input}
+                editable={false}
+                right={<TextInput.Icon icon="chevron-down" onPress={() => setLocationMenuVisible(true)} />}
+                onPressIn={() => setLocationMenuVisible(true)}
+              />
+            }
+          >
+            <Menu.Item
+              title="None"
+              onPress={() => { setSelectedLocation(null); setLocationMenuVisible(false); }}
+            />
+            {locations.map(loc => (
+              <Menu.Item
+                key={loc.id}
+                title={loc.title}
+                onPress={() => { setSelectedLocation(loc); setLocationMenuVisible(false); }}
+              />
+            ))}
+          </Menu>
+        </View>
 
-        {Platform.OS === 'android' && (
+        {/* Activity dropdown */}
+        <View style={styles.menuWrapper}>
+          <Menu
+            visible={activityMenuVisible}
+            onDismiss={() => setActivityMenuVisible(false)}
+            anchor={
+              <TextInput
+                label="Motion Activity (optional)"
+                value={selectedActivity ?? ''}
+                mode="outlined"
+                style={styles.input}
+                editable={false}
+                right={<TextInput.Icon icon="chevron-down" onPress={() => setActivityMenuVisible(true)} />}
+                onPressIn={() => setActivityMenuVisible(true)}
+              />
+            }
+          >
+            <Menu.Item
+              title="None"
+              onPress={() => { setSelectedActivity(null); setActivityMenuVisible(false); }}
+            />
+            {MOTION_ACTIVITIES.map(activity => (
+              <Menu.Item
+                key={activity}
+                title={activity}
+                onPress={() => { setSelectedActivity(activity); setActivityMenuVisible(false); }}
+              />
+            ))}
+          </Menu>
+        </View>
+
+        {/* Date/time section — optional */}
+        <Button
+          mode="outlined"
+          icon={showDateSection ? 'calendar-remove' : 'calendar'}
+          onPress={() => setShowDateSection(v => !v)}
+          style={styles.dateToggleButton}
+        >
+          {showDateSection ? 'Remove Date & Time' : 'Set Date & Time'}
+        </Button>
+
+        {showDateSection && (
           <>
-            <Pressable onPress={() => setShowDatePicker(true)} style={styles.androidPickerButton}>
-              <Text>Date: {selectedDateTime.toLocaleDateString()}</Text>
-            </Pressable>
-            {showDatePicker && (
+            {Platform.OS === 'ios' && (
               <DateTimePicker
-                mode="date"
+                mode="datetime"
                 value={selectedDateTime}
-                onChange={(_, date) => {
-                  setShowDatePicker(false);
-                  if (date) setSelectedDateTime(date);
-                }}
+                onChange={(_, date) => date && setSelectedDateTime(date)}
+                display="inline"
+                minimumDate={new Date()}
+                themeVariant="light"
+                style={styles.iosPicker}
               />
             )}
 
-            <Pressable onPress={() => setShowTimePicker(true)} style={styles.androidPickerButton}>
-              <Text>Time: {selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-            </Pressable>
-            {showTimePicker && (
-              <DateTimePicker
-                mode="time"
-                value={selectedDateTime}
-                onChange={(_, date) => {
-                  setShowTimePicker(false);
-                  if (date) setSelectedDateTime(date);
-                }}
-              />
+            {Platform.OS === 'android' && (
+              <>
+                <Pressable onPress={() => setShowDatePicker(true)} style={styles.androidPickerButton}>
+                  <Text>Date: {selectedDateTime.toLocaleDateString()}</Text>
+                </Pressable>
+                {showDatePicker && (
+                  <DateTimePicker
+                    mode="date"
+                    value={selectedDateTime}
+                    onChange={(_, date) => {
+                      setShowDatePicker(false);
+                      if (date) setSelectedDateTime(date);
+                    }}
+                  />
+                )}
+
+                <Pressable onPress={() => setShowTimePicker(true)} style={styles.androidPickerButton}>
+                  <Text>Time: {selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                </Pressable>
+                {showTimePicker && (
+                  <DateTimePicker
+                    mode="time"
+                    value={selectedDateTime}
+                    onChange={(_, date) => {
+                      setShowTimePicker(false);
+                      if (date) setSelectedDateTime(date);
+                    }}
+                  />
+                )}
+              </>
             )}
           </>
         )}
@@ -146,6 +246,12 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 8,
+  },
+  menuWrapper: {
+    marginBottom: 16,
+  },
+  dateToggleButton: {
+    marginBottom: 16,
   },
   iosPicker: {
     marginBottom: 8,

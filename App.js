@@ -2,6 +2,7 @@ import * as React from 'react';
 import { PaperProvider, BottomNavigation, Icon } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 import HomeScreen from './screens/HomeScreen';
 import CreateReminderScreen from './screens/CreateReminderScreen';
 import ReminderModal from './components/ReminderModal';
@@ -10,7 +11,9 @@ import { requestPermissions } from './services/notifications';
 import LocationScreen from './screens/LocationScreen';
 import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
-import { LocationProvider } from './services/location';
+import { LocationProvider, useLocations } from './services/location';
+import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
+import { checkConditions } from './services/reminderConditionChecker';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -27,6 +30,10 @@ function MainTabs({ navigation }) {
   ]);
 
   const { reminders, add, remove, update } = useReminders();
+  const { locations } = useLocations();
+
+  const latestMotionType = React.useRef('stationary');
+  const latestPosition = React.useRef(null);
 
   React.useEffect(() => {
     requestPermissions();
@@ -37,6 +44,47 @@ function MainTabs({ navigation }) {
 
     return () => subscription.remove();
   }, []);
+
+  // Accelerometer — updates latest motion and runs condition checks
+  React.useEffect(() => {
+    startAccelerometer();
+
+    const unsubscribe = onMotionChange(({ motionType }) => {
+      latestMotionType.current = motionType;
+      checkConditions({ motionType, currentPosition: latestPosition.current, reminders, locations });
+    });
+
+    return () => {
+      unsubscribe();
+      stopAccelerometer();
+    };
+  }, [reminders, locations]);
+
+  // Location polling — updates latest position and runs condition checks every 30s
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function poll() {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || cancelled) return;
+        const pos = await Location.getCurrentPositionAsync({});
+        if (cancelled) return;
+        const currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        latestPosition.current = currentPosition;
+        checkConditions({ motionType: latestMotionType.current, currentPosition, reminders, locations });
+      } catch (e) {
+        console.warn('[Location] Poll failed:', e);
+      }
+    }
+
+    poll();
+    const interval = setInterval(poll, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [reminders, locations]);
 
   const renderScene = BottomNavigation.SceneMap({
     home:    () => <HomeScreen reminders={reminders} onDelete={remove} onUpdate={update} navigation={navigation} />,

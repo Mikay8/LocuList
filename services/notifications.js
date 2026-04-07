@@ -32,7 +32,18 @@ export async function scheduleNotification(reminder) {
   });
 }
 
-// Cancel a scheduled notification 
+// Cancel a scheduled notification
 export async function cancelNotification(notifId) {
   await Notifications.cancelScheduledNotificationAsync(notifId);
+}
+
+// Fire a notification immediately (condition-based trigger)
+export async function sendImmediateNotification(reminder) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: reminder.reminderName,
+      body: reminder.description || 'You have a reminder.',
+    },
+    trigger: null,
+  });
 }

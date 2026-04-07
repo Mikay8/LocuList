@@ -34,13 +34,21 @@ export default function HomeScreen({ reminders, onDelete, onUpdate }) {
                   
                   <Card.Content>
                     <Text variant="titleLarge">{reminder.reminderName}</Text>
-                    <Text variant="bodyMedium">{reminder.reminderDescription}</Text>
-                    <Text variant="bodyMedium">
-                      {new Date(reminder.dateTime).toLocaleString([], {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
-                      })}
-                    </Text>
+                    <Text variant="bodyMedium">{reminder.description}</Text>
+                    {reminder.dateTime && (
+                      <Text variant="bodyMedium">
+                        {new Date(reminder.dateTime).toLocaleString([], {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </Text>
+                    )}
+                    {reminder.locationTitle && (
+                      <Text variant="bodyMedium">Location: {reminder.locationTitle}</Text>
+                    )}
+                    {reminder.activity && (
+                      <Text variant="bodyMedium">Activity: {reminder.activity}</Text>
+                    )}
                   </Card.Content>
                   <Card.Actions>
                     <Button mode="contained" onPress={() => {
