@@ -199,6 +199,9 @@ export default function CreateReminderScreen({ onAdd }) {
       <Button mode="contained" onPress={handleSubmitReminder} style={styles.button} disabled={!reminderName.trim()}>
         Save Reminder
       </Button>
+      <Button mode="contained"  style={styles.button} >
+        Speak a Reminder
+      </Button>
     </ScrollView>
   );
 }
