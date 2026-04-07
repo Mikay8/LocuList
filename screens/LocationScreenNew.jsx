@@ -15,38 +15,36 @@ export default function LocationScreenNew({ navigation }) {
 		if (!title.trim()) return;
 		setSaving(true);
 
-		let gpsCoords = null;
+		const trimmedAddress = address.trim();
+		let geocodedCoords = null;
 		try {
-			const servicesEnabled = await Location.hasServicesEnabledAsync();
-			if (!servicesEnabled) {
-				throw new Error('Location services are disabled on this device or simulator.');
-			}
+			if (trimmedAddress) {
+				const matches = await Location.geocodeAsync(trimmedAddress);
+				const bestMatch = matches[0];
 
-			const { status } = await Location.requestForegroundPermissionsAsync();
-			if (status !== 'granted') {
-				throw new Error('Location permission was not granted.');
-			}
+				if (!bestMatch) {
+					throw new Error('No coordinates found for the entered address.');
+				}
 
-			const lastKnown = await Location.getLastKnownPositionAsync();
-			const pos = lastKnown ?? await Location.getCurrentPositionAsync({
-				accuracy: Location.Accuracy.Balanced,
-				maximumAge: 60_000,
-				timeInterval: 5_000,
-			});
-
-			if (pos?.coords) {
-				gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+				geocodedCoords = { lat: bestMatch.latitude, lng: bestMatch.longitude };
 			}
 		} catch (e) {
-			console.warn('Could not get GPS coordinates:', e);
+			console.warn('Could not geocode address:', e);
 		}
 
 		try {
+			console.log('[LocationScreenNew] saving location:', {
+				title: title.trim(),
+				subtitle: subtitle.trim(),
+				address: trimmedAddress,
+				location: geocodedCoords,
+			});
+
 			await addLocation({
 				title: title.trim(),
 				subtitle: subtitle.trim(),
-				address: address.trim(),
-				location: gpsCoords,
+				address: trimmedAddress,
+				location: geocodedCoords,
 			});
 
 			setTitle('');
