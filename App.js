@@ -11,7 +11,7 @@ import { requestPermissions } from './services/notifications';
 import LocationScreen from './screens/LocationScreen';
 import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
-import { LocationProvider, useLocations } from './services/location';
+import { useLocations } from './services/location';
 import { startAccelerometer, stopAccelerometer, onMotionChange } from './services/accelerometer';
 import { checkConditions } from './services/reminderConditionChecker';
 
@@ -66,9 +66,20 @@ function MainTabs({ navigation }) {
 
     async function poll() {
       try {
+        const servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled || cancelled) return;
+
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted' || cancelled) return;
-        const pos = await Location.getCurrentPositionAsync({});
+
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        const pos = lastKnown ?? await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          maximumAge: 60_000,
+          timeInterval: 5_000,
+        });
+
+        if (!pos?.coords || cancelled) return;
         if (cancelled) return;
         const currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         latestPosition.current = currentPosition;
@@ -128,15 +139,13 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider>
-        <LocationProvider>
-          <NavigationContainer>
-            <Stack.Navigator>
-              <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-              <Stack.Screen name="LocationScreenDetail" component={LocationScreenDetail} options={{ title: 'Location Details' }} />
-              <Stack.Screen name="LocationScreenNew" component={LocationScreenNew} options={{ title: 'New Location' }} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </LocationProvider>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
+            <Stack.Screen name="LocationScreenDetail" component={LocationScreenDetail} options={{ title: 'Location Details' }} />
+            <Stack.Screen name="LocationScreenNew" component={LocationScreenNew} options={{ title: 'New Location' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
       </PaperProvider>
     </SafeAreaProvider>
   );

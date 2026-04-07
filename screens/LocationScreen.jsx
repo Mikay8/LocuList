@@ -29,6 +29,7 @@ export default function LocationScreen({ navigation }) {
 
         const viewDetails = (item) => {
             // Prefer the passed navigation, but fall back to the parent navigator if needed.
+            
             const nav = (navigation && typeof navigation.navigate === 'function')
                 ? navigation
                 : (navigation && typeof navigation.getParent === 'function')
