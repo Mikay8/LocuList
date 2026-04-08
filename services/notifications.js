@@ -49,8 +49,9 @@ export async function sendImmediateNotification(reminder) {
 }
 
 export async function sendLocationNearbyNotification(location, distanceMeters) {
+  const distanceMiles = distanceMeters / 1609.344;
   const distanceText = Number.isFinite(distanceMeters)
-    ? `You are about ${distanceMeters} meters away.`
+    ? `You are about ${distanceMiles.toFixed(1)} miles away.`
     : 'You are near one of your saved locations.';
 
   await Notifications.scheduleNotificationAsync({
