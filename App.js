@@ -7,7 +7,7 @@ import HomeScreen from './screens/HomeScreen';
 import CreateReminderScreen from './screens/CreateReminderScreen';
 import ReminderModal from './components/ReminderModal';
 import { useReminders } from './hooks/useReminders';
-import { requestPermissions } from './services/notifications';
+import { requestPermissions, speakNotificationMessage } from './services/notifications';
 import LocationScreen from './screens/LocationScreen';
 import LocationScreenDetail from './screens/LocationScreenDetail';
 import LocationScreenNew from './screens/LocationScreenNew';
@@ -45,6 +45,7 @@ function MainTabs({ navigation }) {
     const subscription = Notifications.addNotificationReceivedListener(notification => {
       const { title, body } = notification.request.content;
       setModalNotif({ title: title ?? 'Reminder', body: body ?? '' });
+      void speakNotificationMessage(title ?? 'Reminder', body ?? '');
     });
 
     return () => subscription.remove();
