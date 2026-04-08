@@ -1,6 +1,6 @@
 import { sendLocationNearbyNotification } from './notifications';
 
-const PROXIMITY_METERS = 400;
+const PROXIMITY_METERS = 600;
 const EXIT_BUFFER_METERS = 50;
 const COOLDOWN_MS = 10 * 60 * 1000;
 
@@ -26,7 +26,7 @@ function normalizeCoords(location) {
 	return lat != null && lng != null ? { lat, lng } : null;
 }
 
-export function checkSavedLocationProximity({ currentPosition, locations }) {
+export function checkSavedLocationProximity({ currentPosition, locations, reminders }) {
 	if (!currentPosition) return;
 
 	const activeIds = new Set(locations.map(location => location.id));
@@ -36,7 +36,17 @@ export function checkSavedLocationProximity({ currentPosition, locations }) {
 		}
 	}
 
-	for (const location of locations) {
+for (const reminder of reminders) {
+
+    const hasTime = !!reminder.dateTime;
+    if (hasTime && new Date(reminder.dateTime) > new Date()) continue;
+
+
+	const hasLocation = !!reminder.locationId;
+	if (hasLocation) {
+		const location = locations.find(l => l.id === reminder.locationId);
+		if (location) {
+				console.log('[LocationProximityChecker] Checking location:', location.id);
 		const coords = normalizeCoords(location.location);
 		if (!coords) continue;
 
@@ -55,5 +65,9 @@ export function checkSavedLocationProximity({ currentPosition, locations }) {
 		}
 
 		proximityState.set(location.id, state);
+
+		}
 	}
+}
+
 }
