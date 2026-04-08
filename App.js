@@ -37,6 +37,10 @@ function MainTabs({ navigation }) {
   const latestPosition = React.useRef(null);
 
   React.useEffect(() => {
+    console.log('[MainTabs] reminders:', reminders);
+  }, [reminders]);
+
+  React.useEffect(() => {
     requestPermissions();
     const subscription = Notifications.addNotificationReceivedListener(notification => {
       const { title, body } = notification.request.content;
@@ -85,7 +89,7 @@ function MainTabs({ navigation }) {
         const currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         latestPosition.current = currentPosition;
         checkConditions({ motionType: latestMotionType.current, currentPosition, reminders, locations });
-        checkSavedLocationProximity({ currentPosition, locations });
+        checkSavedLocationProximity({ currentPosition, locations, reminders });
       } catch (e) {
         console.warn('[Location] Poll failed:', e);
       }
