@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import * as Speech from 'expo-speech';
 
 // Configure how notifications are handled when received
 Notifications.setNotificationHandler({
@@ -48,6 +49,22 @@ export async function sendImmediateNotification(reminder) {
   });
 }
 
+export async function speakNotificationMessage(title, body) {
+  const messageParts = [title, body].filter(Boolean);
+  if (messageParts.length === 0) return;
+
+  try {
+    const isSpeaking = await Speech.isSpeakingAsync();
+    if (isSpeaking) {
+      await Speech.stop();
+    }
+
+    await Speech.speak(messageParts.join('. '));
+  } catch (error) {
+    console.warn('[Notifications] Failed to speak notification message:', error);
+  }
+}
+
 export async function sendLocationNearbyNotification(location, distanceMeters) {
   const distanceMiles = distanceMeters / 1609.344;
   const distanceText = Number.isFinite(distanceMeters)
@@ -63,4 +80,9 @@ export async function sendLocationNearbyNotification(location, distanceMeters) {
     },
     trigger: null,
   });
+
 }
+
+
+
+
