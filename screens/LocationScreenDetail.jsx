@@ -1,20 +1,20 @@
 import React from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import{
-SafeAreaView,
-View,
-Text,
-StyleSheet,
-TouchableOpacity,
-Platform,
-Linking,
+import { useRoute } from '@react-navigation/native';
+import {
+    SafeAreaView,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Platform,
+    Linking,
 } from 'react-native';
+import { Surface } from 'react-native-paper';
+import { elevation, palette } from '../theme/appTheme';
 
 export default function LocationScreenDetail(props) {
-    const navigation = props.navigation || useNavigation();
     const route = props.route || useRoute();
     const { title, subtitle, address, location } = route.params || {};
-    
+
 const resolveCoords = (loc) => {
 
     if (!loc) return null;
@@ -23,27 +23,27 @@ const resolveCoords = (loc) => {
     return lat != null && lng != null ? {lat, lng} : null;
 };
 
-React.useEffect(() => {
-    console.log('[LocationScreenDetail] title:', title);
-    console.log('[LocationScreenDetail] subtitle:', subtitle);
-    console.log('[LocationScreenDetail] address:', address);
-    console.log('[LocationScreenDetail] location:', location);
-    console.log('[LocationScreenDetail] coords:', resolveCoords(location));
-}, [title, subtitle, address, location]);
-
 const openMaps = async () => {
-    //const coords = resolveCoords(location);
-
-    //if (!address && !coords) return;
-
-   
-
+    const coords = resolveCoords(location);
     let url = '';
-    if (Platform.OS === 'ios') {
-        url = `http://maps.apple.com/?daddr=${encodeURIComponent(address)}`;
-            
-    } else {
-        url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+
+    if (address) {
+        if (Platform.OS === 'ios') {
+            url = `http://maps.apple.com/?daddr=${encodeURIComponent(address)}`;
+        } else {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+        }
+    } else if (coords) {
+        const destination = `${coords.lat},${coords.lng}`;
+        if (Platform.OS === 'ios') {
+            url = `http://maps.apple.com/?daddr=${destination}`;
+        } else {
+            url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+        }
+    }
+
+    if (!url) {
+        return;
     }
 
     const canOpen = await Linking.canOpenURL(url);
@@ -65,47 +65,90 @@ const displayLocation = () => {
 
 return (
     <SafeAreaView style={styles.container}>
-        <View style={styles.headerRow}>
-          
+        <Surface style={styles.heroCard} elevation={0}>
+            <Text style={styles.eyebrow}>Saved place</Text>
             <Text style={styles.title}>{title}</Text>
-        </View>
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </Surface>
 
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-
-        <View style={styles.locationCard}>
+        <Surface style={styles.locationCard} elevation={0}>
+            <Text style={styles.sectionLabel}>Address or coordinates</Text>
             <Text style={styles.locationText}>{displayLocation()}</Text>
             <TouchableOpacity
                 style={[styles.button, !address && !location && styles.buttonDisabled]}
                 onPress={openMaps}
                 disabled={!address && !location}>
-                <Text style={styles.buttonText}>Navigate</Text>
+                <Text style={styles.buttonText}>Open directions</Text>
             </TouchableOpacity>
-        </View>
+        </Surface>
     </SafeAreaView>
 );
 }
 
 const styles = StyleSheet.create({
-container: {flex: 1, padding: 16, backgroundColor: '#fff'},
-headerRow: {flexDirection: 'row', alignItems: 'center', marginBottom: 12},
-back: {padding: 8},
-backText: {color: '#007aff'},
-title: {flex: 1, fontSize: 20, fontWeight: '600', textAlign: 'center'},
-subtitle: {fontSize: 14, color: '#666', marginBottom: 20, textAlign: 'center'},
-locationCard: {
+container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: palette.background,
+    gap: 18,
+},
+heroCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 28,
+    padding: 24,
+    ...elevation.card,
+},
+eyebrow: {
+    color: palette.secondary,
+    fontSize: 15,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 10,
+},
+title: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '700',
+    color: palette.text,
+},
+subtitle: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: palette.textMuted,
     marginTop: 8,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: '#f7f7f8',
+},
+locationCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    padding: 24,
+    ...elevation.card,
+},
+sectionLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: palette.textMuted,
+    marginBottom: 10,
+},
+locationText: {
+    fontSize: 20,
+    lineHeight: 30,
+    color: palette.text,
+    marginBottom: 20,
+},
+button: {
+    backgroundColor: palette.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 18,
     alignItems: 'center',
 },
-locationText: {fontSize: 16, marginBottom: 12, textAlign: 'center'},
-button: {
-    backgroundColor: '#007aff',
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 6,
+buttonDisabled: {
+    backgroundColor: '#AABCBF',
 },
-buttonDisabled: {backgroundColor: '#bfcfff'},
-buttonText: {color: '#fff', fontWeight: '600'},
+buttonText: {
+    color: palette.white,
+    fontWeight: '700',
+    fontSize: 17,
+},
 });

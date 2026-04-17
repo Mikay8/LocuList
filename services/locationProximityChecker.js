@@ -1,6 +1,6 @@
 import { sendLocationNearbyNotification } from './notifications';
 
-const PROXIMITY_METERS = 600;
+const PROXIMITY_METERS = 300;
 const EXIT_BUFFER_METERS = 50;
 const COOLDOWN_MS = 10 * 60 * 1000;
 
@@ -26,6 +26,12 @@ function normalizeCoords(location) {
 	return lat != null && lng != null ? { lat, lng } : null;
 }
 
+function startOfDay(dateLike) {
+	const date = new Date(dateLike);
+	date.setHours(0, 0, 0, 0);
+	return date;
+}
+
 export function checkSavedLocationProximity({ currentPosition, locations, reminders }) {
 	if (!currentPosition) return;
 
@@ -39,7 +45,7 @@ export function checkSavedLocationProximity({ currentPosition, locations, remind
 for (const reminder of reminders) {
 
     const hasTime = !!reminder.dateTime;
-    if (hasTime && new Date(reminder.dateTime) > new Date()) continue;
+	if (hasTime && startOfDay(reminder.dateTime) > startOfDay(new Date())) continue;
 
 
 	const hasLocation = !!reminder.locationId;

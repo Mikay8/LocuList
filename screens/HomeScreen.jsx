@@ -1,23 +1,75 @@
 import * as React from 'react';
-import { Text, Button, Card  } from 'react-native-paper';
-import { StyleSheet, ScrollView } from 'react-native';
+import { Text, Button, Card, Chip } from 'react-native-paper';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UpdateReminderModal from '../components/UpdateReminderModal';
+import { elevation, palette } from '../theme/appTheme';
 
 export default function HomeScreen({ reminders, onDelete, onUpdate }) {
   const insets = useSafeAreaInsets();
   const [editingReminder, setEditingReminder] = React.useState({});
-  // Apply the insets as padding to ensure content stays on screen
+
   const insetsStyle = {
-    paddingTop: insets.top + 16, // Add some vertical padding
-    paddingBottom: insets.bottom+16, // Add some vertical padding
-    paddingLeft: insets.left + 16, // Add some horizontal padding
-    paddingRight: insets.right + 16, // Add some horizontal padding
+    paddingTop: insets.top + 20,
+    paddingBottom: insets.bottom + 24,
+    paddingLeft: insets.left + 20,
+    paddingRight: insets.right + 20,
   };
+
+  const upcomingCount = reminders.filter(reminder => reminder.dateTime).length;
+
+  function renderMetaChips(reminder) {
+    const chips = [];
+
+    if (reminder.dateTime) {
+      chips.push(
+        <Chip key="time" compact icon="clock-outline" style={styles.metaChip} textStyle={styles.metaChipText}>
+          {new Date(reminder.dateTime).toLocaleString([], {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })}
+        </Chip>
+      );
+    }
+
+    if (reminder.locationTitle) {
+      chips.push(
+        <Chip key="location" compact icon="map-marker" style={styles.metaChip} textStyle={styles.metaChipText}>
+          {reminder.locationTitle}
+        </Chip>
+      );
+    }
+
+    if (reminder.activity) {
+      chips.push(
+        <Chip key="activity" compact icon="walk" style={styles.metaChip} textStyle={styles.metaChipText}>
+          {reminder.activity}
+        </Chip>
+      );
+    }
+
+    return chips;
+  }
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
-        <Text variant="headlineMedium" style={styles.header}>Welcome to LocuList!</Text>
-        {/* Modal for updating reminders */}
+        <View style={styles.heroCard}>
+          <Text variant="headlineMedium" style={styles.header}>Simple reminders, easy to read.</Text>
+          <Text variant="bodyLarge" style={styles.heroText}>
+            Keep important tasks visible with larger text, calmer colors, and fewer distractions.
+          </Text>
+          <View style={styles.heroStats}>
+            <View style={styles.statCard}>
+              <Text variant="headlineSmall" style={styles.statValue}>{reminders.length}</Text>
+              <Text variant="bodyMedium" style={styles.statLabel}>Saved reminders</Text>
+            </View>
+            <View style={styles.statCardAccent}>
+              <Text variant="headlineSmall" style={styles.statValueAccent}>{upcomingCount}</Text>
+              <Text variant="bodyMedium" style={styles.statLabelAccent}>With a time set</Text>
+            </View>
+          </View>
+        </View>
+
         <UpdateReminderModal
           visible={!!editingReminder.id}
           reminder={editingReminder}
@@ -27,36 +79,29 @@ export default function HomeScreen({ reminders, onDelete, onUpdate }) {
           }}
           onClose={() => setEditingReminder({})}
         />
-        {/* List of reminders or a message if there are none */}
+
+        <View style={styles.sectionHeader}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Your reminders</Text>
+          <Text variant="bodyMedium" style={styles.sectionSubtitle}>Tap a card to review details or make changes.</Text>
+        </View>
+
         {reminders.length > 0 ? (
             reminders?.map((reminder) => (
-                <Card key={reminder.id} style={styles.card}>
-                  
+                <Card key={reminder.id} style={styles.card} mode="contained">
                   <Card.Content>
-                    <Text variant="titleLarge">{reminder.reminderName}</Text>
-                    <Text variant="bodyMedium">{reminder.description}</Text>
-                    {reminder.dateTime && (
-                      <Text variant="bodyMedium">
-                        {new Date(reminder.dateTime).toLocaleString([], {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </Text>
+                    <Text variant="titleLarge" style={styles.cardTitle}>{reminder.reminderName}</Text>
+                    {!!reminder.description && (
+                      <Text variant="bodyLarge" style={styles.cardBody}>{reminder.description}</Text>
                     )}
-                    {reminder.locationTitle && (
-                      <Text variant="bodyMedium">Location: {reminder.locationTitle}</Text>
-                    )}
-                    {reminder.activity && (
-                      <Text variant="bodyMedium">Activity: {reminder.activity}</Text>
-                    )}
+                    <View style={styles.metaRow}>{renderMetaChips(reminder)}</View>
                   </Card.Content>
-                  <Card.Actions>
-                    <Button mode="contained" onPress={() => {
+                  <Card.Actions style={styles.cardActions}>
+                    <Button mode="contained" buttonColor={palette.primary} contentStyle={styles.actionButtonContent} labelStyle={styles.actionLabel} onPress={() => {
                       setEditingReminder(reminder);
                     }}>
                       Edit
                     </Button>
-                    <Button mode="contained" onPress={() => onDelete(reminder)}>
+                    <Button mode="outlined" textColor={palette.danger} style={styles.deleteButton} contentStyle={styles.actionButtonContent} labelStyle={styles.actionLabel} onPress={() => onDelete(reminder)}>
                       Delete
                     </Button>
                   </Card.Actions>
@@ -64,7 +109,10 @@ export default function HomeScreen({ reminders, onDelete, onUpdate }) {
             ))
             
         ) : (
-          <Text variant="bodyMedium" style={styles.text}>No reminders yet. Create one to get started!</Text>
+          <View style={styles.emptyState}>
+            <Text variant="titleLarge" style={styles.emptyTitle}>No reminders yet</Text>
+            <Text variant="bodyLarge" style={styles.emptyText}>Use the New tab to add a reminder for medicine, appointments, errands, or daily routines.</Text>
+          </View>
         )}
     </ScrollView>
   );
@@ -72,18 +120,119 @@ export default function HomeScreen({ reminders, onDelete, onUpdate }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: palette.background,
   },
   content: {
-    paddingLeft: 16,
+    gap: 18,
+  },
+  heroCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 28,
+    padding: 24,
+    ...elevation.card,
   },
   header: {
-    marginBottom: 24,
+    color: palette.text,
+    marginBottom: 10,
   },
-  text: {
-    marginTop: 8,
+  heroText: {
+    color: palette.textMuted,
+  },
+  heroStats: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: palette.background,
+    borderRadius: 22,
+    padding: 18,
+  },
+  statCardAccent: {
+    flex: 1,
+    backgroundColor: palette.primary,
+    borderRadius: 22,
+    padding: 18,
+  },
+  statValue: {
+    color: palette.text,
+  },
+  statValueAccent: {
+    color: palette.white,
+  },
+  statLabel: {
+    color: palette.textMuted,
+    marginTop: 4,
+  },
+  statLabelAccent: {
+    color: '#DDEEEF',
+    marginTop: 4,
+  },
+  sectionHeader: {
+    paddingTop: 6,
+  },
+  sectionTitle: {
+    color: palette.text,
+  },
+  sectionSubtitle: {
+    color: palette.textMuted,
+    marginTop: 4,
   },
   card: {
-    marginBottom: 16,
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    marginBottom: 14,
+    ...elevation.card,
+  },
+  cardTitle: {
+    color: palette.text,
+  },
+  cardBody: {
+    color: palette.textMuted,
+    marginTop: 8,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+  },
+  metaChip: {
+    backgroundColor: palette.primarySoft,
+  },
+  metaChipText: {
+    color: palette.primary,
+    fontSize: 14,
+  },
+  cardActions: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 4,
+  },
+  actionButtonContent: {
+    minHeight: 48,
+    paddingHorizontal: 12,
+  },
+  actionLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  deleteButton: {
+    borderColor: '#E2B1AA',
+  },
+  emptyState: {
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    padding: 24,
+    ...elevation.card,
+  },
+  emptyTitle: {
+    color: palette.text,
+    marginBottom: 8,
+  },
+  emptyText: {
+    color: palette.textMuted,
   },
 });

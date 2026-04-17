@@ -3,6 +3,7 @@ import { PaperProvider, BottomNavigation, Icon } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
+import { StatusBar } from 'expo-status-bar';
 import HomeScreen from './screens/HomeScreen';
 import CreateReminderScreen from './screens/CreateReminderScreen';
 import ReminderModal from './components/ReminderModal';
@@ -18,6 +19,7 @@ import { checkSavedLocationProximity } from './services/locationProximityChecker
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { appTheme, palette } from './theme/appTheme';
 
 const Stack = createNativeStackNavigator();
 
@@ -25,9 +27,9 @@ function MainTabs({ navigation }) {
   const [index, setIndex] = React.useState(0);
   const [modalNotif, setModalNotif] = React.useState(null);
   const [routes] = React.useState([
-    { key: 'home',    title: 'Home',    focusedIcon: 'home', unfocusedIcon: 'home-outline' },
-    { key: 'createReminder', title: 'Create Reminder', focusedIcon: 'plus', unfocusedIcon: 'plus' },
-    { key: 'location', title: 'Location', focusedIcon: 'map-marker', unfocusedIcon: 'map-marker-outline' }
+    { key: 'home', title: 'Reminders', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+    { key: 'createReminder', title: 'New', focusedIcon: 'plus-circle', unfocusedIcon: 'plus-circle-outline' },
+    { key: 'location', title: 'Places', focusedIcon: 'map-marker', unfocusedIcon: 'map-marker-outline' }
   ]);
 
   const { reminders, add, remove, update } = useReminders();
@@ -122,19 +124,28 @@ function MainTabs({ navigation }) {
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}
-        activeColor="#fbfbfb"
-        inactiveColor="#fbfbfb"
+        activeColor={palette.primary}
+        inactiveColor={palette.textMuted}
         barStyle={{
-          backgroundColor: '#0073AF',
+          backgroundColor: palette.surface,
+          borderTopWidth: 1,
+          borderTopColor: palette.surfaceVariant,
+          height: 84,
+          paddingBottom: 10,
+          paddingTop: 8,
         }}
         activeIndicatorStyle={{
-          backgroundColor: '#2ea2e0',
+          backgroundColor: palette.primarySoft,
+          borderRadius: 16,
         }}
+        sceneAnimationEnabled
+        labeled
+        compact={false}
         renderIcon={({ route, focused, color }) => (
           <Icon
             source={focused ? route.focusedIcon : route.unfocusedIcon}
             color={color}
-            size={25}
+            size={26}
           />
         )}
       />
@@ -145,12 +156,28 @@ function MainTabs({ navigation }) {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <PaperProvider>
+      <PaperProvider theme={appTheme}>
+        <StatusBar style="dark" />
         <NavigationContainer>
-          <Stack.Navigator>
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: palette.surface,
+              },
+              headerTintColor: palette.text,
+              headerTitleStyle: {
+                fontSize: 20,
+                fontWeight: '700',
+              },
+              headerShadowVisible: false,
+              contentStyle: {
+                backgroundColor: palette.background,
+              },
+            }}
+          >
             <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-            <Stack.Screen name="LocationScreenDetail" component={LocationScreenDetail} options={{ title: 'Location Details' }} />
-            <Stack.Screen name="LocationScreenNew" component={LocationScreenNew} options={{ title: 'New Location' }} />
+            <Stack.Screen name="LocationScreenDetail" component={LocationScreenDetail} options={{ title: 'Place Details' }} />
+            <Stack.Screen name="LocationScreenNew" component={LocationScreenNew} options={{ title: 'Add Place' }} />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

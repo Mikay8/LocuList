@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Text, TextInput, Button, Menu } from 'react-native-paper';
+import { useEffect, useState } from 'react';
+import { Text, TextInput, Button, Menu, Surface } from 'react-native-paper';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocations } from '../services/location';
+import { elevation, palette } from '../theme/appTheme';
 
 const MOTION_ACTIVITIES = [
   'Walking',
@@ -16,7 +17,7 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
   const { locations } = useLocations();
 
   const [reminderName, setReminderName] = useState(reminder?.reminderName ?? '');
-  const [description, setDescription] = useState(reminder?.reminderDescription ?? '');
+  const [description, setDescription] = useState(reminder?.description ?? '');
   const [selectedLocation, setSelectedLocation] = useState(
     reminder?.locationId ? { id: reminder.locationId, title: reminder.locationTitle } : null
   );
@@ -32,29 +33,28 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const insetsStyle = {
-    paddingTop: insets.top + 16,
-    paddingBottom: insets.bottom + 16,
-    paddingLeft: insets.left + 16,
-    paddingRight: insets.right + 16,
+    paddingTop: insets.top + 20,
+    paddingBottom: insets.bottom + 28,
+    paddingLeft: insets.left + 20,
+    paddingRight: insets.right + 20,
   };
 
-  // Re-sync fields when a different reminder is opened
-  function handleShow() {
+  useEffect(() => {
     setReminderName(reminder?.reminderName ?? '');
-    setDescription(reminder?.reminderDescription ?? '');
+    setDescription(reminder?.description ?? '');
     setSelectedLocation(
       reminder?.locationId ? { id: reminder.locationId, title: reminder.locationTitle } : null
     );
     setSelectedActivity(reminder?.activity ?? null);
     setShowDateSection(!!reminder?.dateTime);
     setSelectedDateTime(reminder?.dateTime ? new Date(reminder.dateTime) : new Date());
-  }
+  }, [reminder]);
 
   async function handleSave() {
     const updated = {
       ...reminder,
       reminderName,
-      reminderDescription: description,
+      description,
       dateTime: showDateSection ? selectedDateTime.toISOString() : null,
       locationId: selectedLocation?.id ?? null,
       locationTitle: selectedLocation?.title ?? null,
@@ -73,156 +73,176 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
-      onShow={handleShow}
       onRequestClose={onClose}
     >
       <ScrollView style={styles.container} contentContainerStyle={[styles.content, insetsStyle]}>
-        <Text variant="headlineMedium" style={styles.title}>Edit Reminder</Text>
+        <Surface style={styles.heroCard} elevation={0}>
+          <Text variant="headlineMedium" style={styles.title}>Edit reminder</Text>
+          <Text variant="bodyLarge" style={styles.subtitle}>Update the task details without leaving the page.</Text>
+        </Surface>
 
-        <TextInput
-          label="Name"
-          value={reminderName}
-          onChangeText={setReminderName}
-          mode="outlined"
-          style={styles.input}
-        />
-        <TextInput
-          label="Description"
-          value={description}
-          onChangeText={setDescription}
-          mode="outlined"
-          style={styles.input}
-        />
+        <Surface style={styles.sectionCard} elevation={0}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Reminder details</Text>
+          <TextInput
+            label="Reminder name"
+            value={reminderName}
+            onChangeText={setReminderName}
+            mode="outlined"
+            style={styles.input}
+            outlineStyle={styles.inputOutline}
+          />
+          <TextInput
+            label="Notes"
+            value={description}
+            onChangeText={setDescription}
+            mode="outlined"
+            multiline
+            style={styles.input}
+            outlineStyle={styles.inputOutline}
+          />
+        </Surface>
 
-        {/* Location dropdown */}
-        <View style={styles.menuWrapper}>
-          <Menu
-            visible={locationMenuVisible}
-            onDismiss={() => setLocationMenuVisible(false)}
-            anchor={
-              <TextInput
-                label="Location (optional)"
-                value={selectedLocation?.title ?? ''}
-                mode="outlined"
-                style={styles.input}
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" onPress={() => setLocationMenuVisible(true)} />}
-                onPressIn={() => setLocationMenuVisible(true)}
-              />
-            }
-          >
-            <Menu.Item
-              title="None"
-              onPress={() => { setSelectedLocation(null); setLocationMenuVisible(false); }}
-            />
-            {locations.map(loc => (
+        <Surface style={styles.sectionCard} elevation={0}>
+          <Text variant="titleLarge" style={styles.sectionTitle}>Triggers</Text>
+          <Text variant="bodyMedium" style={styles.sectionBody}>Adjust where, when, or how this reminder should appear.</Text>
+
+          <View style={styles.menuWrapper}>
+            <Menu
+              visible={locationMenuVisible}
+              onDismiss={() => setLocationMenuVisible(false)}
+              anchor={
+                <TextInput
+                  label="Place"
+                  value={selectedLocation?.title ?? ''}
+                  mode="outlined"
+                  style={styles.input}
+                  editable={false}
+                  outlineStyle={styles.inputOutline}
+                  right={<TextInput.Icon icon="chevron-down" onPress={() => setLocationMenuVisible(true)} />}
+                  onPressIn={() => setLocationMenuVisible(true)}
+                />
+              }
+            >
               <Menu.Item
-                key={loc.id}
-                title={loc.title}
-                onPress={() => { setSelectedLocation(loc); setLocationMenuVisible(false); }}
+                title="None"
+                onPress={() => { setSelectedLocation(null); setLocationMenuVisible(false); }}
               />
-            ))}
-          </Menu>
-        </View>
+              {locations.map(loc => (
+                <Menu.Item
+                  key={loc.id}
+                  title={loc.title}
+                  onPress={() => { setSelectedLocation(loc); setLocationMenuVisible(false); }}
+                />
+              ))}
+            </Menu>
+          </View>
 
-        {/* Activity dropdown */}
-        <View style={styles.menuWrapper}>
-          <Menu
-            visible={activityMenuVisible}
-            onDismiss={() => setActivityMenuVisible(false)}
-            anchor={
-              <TextInput
-                label="Motion Activity (optional)"
-                value={selectedActivity ?? ''}
-                mode="outlined"
-                style={styles.input}
-                editable={false}
-                right={<TextInput.Icon icon="chevron-down" onPress={() => setActivityMenuVisible(true)} />}
-                onPressIn={() => setActivityMenuVisible(true)}
-              />
-            }
-          >
-            <Menu.Item
-              title="None"
-              onPress={() => { setSelectedActivity(null); setActivityMenuVisible(false); }}
-            />
-            {MOTION_ACTIVITIES.map(activity => (
+          <View style={styles.menuWrapper}>
+            <Menu
+              visible={activityMenuVisible}
+              onDismiss={() => setActivityMenuVisible(false)}
+              anchor={
+                <TextInput
+                  label="Motion activity"
+                  value={selectedActivity ?? ''}
+                  mode="outlined"
+                  style={styles.input}
+                  editable={false}
+                  outlineStyle={styles.inputOutline}
+                  right={<TextInput.Icon icon="chevron-down" onPress={() => setActivityMenuVisible(true)} />}
+                  onPressIn={() => setActivityMenuVisible(true)}
+                />
+              }
+            >
               <Menu.Item
-                key={activity}
-                title={activity}
-                onPress={() => { setSelectedActivity(activity); setActivityMenuVisible(false); }}
+                title="None"
+                onPress={() => { setSelectedActivity(null); setActivityMenuVisible(false); }}
               />
-            ))}
-          </Menu>
-        </View>
+              {MOTION_ACTIVITIES.map(activity => (
+                <Menu.Item
+                  key={activity}
+                  title={activity}
+                  onPress={() => { setSelectedActivity(activity); setActivityMenuVisible(false); }}
+                />
+              ))}
+            </Menu>
+          </View>
 
-        {/* Date/time section — optional */}
-        <Button
-          mode="outlined"
-          icon={showDateSection ? 'calendar-remove' : 'calendar'}
-          onPress={() => setShowDateSection(v => !v)}
-          style={styles.dateToggleButton}
-        >
-          {showDateSection ? 'Remove Date & Time' : 'Set Date & Time'}
-        </Button>
+          <Button
+            mode="outlined"
+            icon={showDateSection ? 'calendar-remove' : 'calendar'}
+            textColor={palette.primary}
+            style={styles.dateToggleButton}
+            contentStyle={styles.actionButtonContent}
+            onPress={() => setShowDateSection(v => !v)}
+          >
+            {showDateSection ? 'Remove date and time' : 'Add date and time'}
+          </Button>
 
-        {showDateSection && (
-          <>
-            {Platform.OS === 'ios' && (
-              <DateTimePicker
-                mode="datetime"
-                value={selectedDateTime}
-                onChange={(_, date) => date && setSelectedDateTime(date)}
-                display="inline"
-                minimumDate={new Date()}
-                themeVariant="light"
-                style={styles.iosPicker}
-              />
-            )}
+          {showDateSection && (
+            <View style={styles.pickerCard}>
+              {Platform.OS === 'ios' && (
+                <DateTimePicker
+                  mode="datetime"
+                  value={selectedDateTime}
+                  onChange={(_, date) => date && setSelectedDateTime(date)}
+                  display="inline"
+                  minimumDate={new Date()}
+                  themeVariant="light"
+                  style={styles.iosPicker}
+                />
+              )}
 
-            {Platform.OS === 'android' && (
-              <>
-                <Pressable onPress={() => setShowDatePicker(true)} style={styles.androidPickerButton}>
-                  <Text>Date: {selectedDateTime.toLocaleDateString()}</Text>
-                </Pressable>
-                {showDatePicker && (
-                  <DateTimePicker
-                    mode="date"
-                    value={selectedDateTime}
-                    onChange={(_, date) => {
-                      setShowDatePicker(false);
-                      if (date) setSelectedDateTime(date);
-                    }}
-                  />
-                )}
+              {Platform.OS === 'android' && (
+                <>
+                  <Pressable onPress={() => setShowDatePicker(true)} style={styles.androidPickerButton}>
+                    <Text variant="titleMedium" style={styles.pickerLabel}>Date</Text>
+                    <Text variant="bodyLarge" style={styles.pickerValue}>{selectedDateTime.toLocaleDateString()}</Text>
+                  </Pressable>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      mode="date"
+                      value={selectedDateTime}
+                      onChange={(_, date) => {
+                        setShowDatePicker(false);
+                        if (date) setSelectedDateTime(date);
+                      }}
+                    />
+                  )}
 
-                <Pressable onPress={() => setShowTimePicker(true)} style={styles.androidPickerButton}>
-                  <Text>Time: {selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                </Pressable>
-                {showTimePicker && (
-                  <DateTimePicker
-                    mode="time"
-                    value={selectedDateTime}
-                    onChange={(_, date) => {
-                      setShowTimePicker(false);
-                      if (date) setSelectedDateTime(date);
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </>
-        )}
+                  <Pressable onPress={() => setShowTimePicker(true)} style={styles.androidPickerButton}>
+                    <Text variant="titleMedium" style={styles.pickerLabel}>Time</Text>
+                    <Text variant="bodyLarge" style={styles.pickerValue}>
+                      {selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </Pressable>
+                  {showTimePicker && (
+                    <DateTimePicker
+                      mode="time"
+                      value={selectedDateTime}
+                      onChange={(_, date) => {
+                        setShowTimePicker(false);
+                        if (date) setSelectedDateTime(date);
+                      }}
+                    />
+                  )}
+                </>
+              )}
+            </View>
+          )}
+        </Surface>
 
         <Button
           mode="contained"
           onPress={handleSave}
           style={styles.button}
+          contentStyle={styles.primaryButtonContent}
+          labelStyle={styles.primaryButtonLabel}
           disabled={!reminderName.trim()}
         >
-          Save Changes
+          Save changes
         </Button>
-        <Button mode="outlined" onPress={onClose} style={styles.button}>
+        <Button mode="outlined" onPress={onClose} style={styles.secondaryButton} contentStyle={styles.actionButtonContent}>
           Cancel
         </Button>
       </ScrollView>
@@ -233,34 +253,91 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: palette.background,
   },
   content: {
-    paddingLeft: 16,
+    gap: 18,
+  },
+  heroCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 28,
+    padding: 24,
+    ...elevation.card,
   },
   title: {
-    marginBottom: 24,
+    color: palette.text,
+  },
+  subtitle: {
+    color: palette.textMuted,
+    marginTop: 8,
+  },
+  sectionCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 24,
+    padding: 20,
+    ...elevation.card,
+  },
+  sectionTitle: {
+    color: palette.text,
+    marginBottom: 6,
+  },
+  sectionBody: {
+    color: palette.textMuted,
+    marginBottom: 18,
   },
   input: {
     marginBottom: 16,
+    backgroundColor: palette.surface,
+  },
+  inputOutline: {
+    borderRadius: 18,
+    borderColor: palette.outline,
   },
   button: {
-    marginTop: 8,
+    marginTop: 4,
+  },
+  primaryButtonContent: {
+    minHeight: 56,
+  },
+  primaryButtonLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    borderColor: palette.outline,
   },
   menuWrapper: {
-    marginBottom: 16,
+    marginBottom: 8,
   },
   dateToggleButton: {
-    marginBottom: 16,
+    marginTop: 4,
+    borderColor: palette.primary,
+    borderRadius: 18,
+  },
+  actionButtonContent: {
+    minHeight: 48,
   },
   iosPicker: {
     marginBottom: 8,
   },
+  pickerCard: {
+    marginTop: 16,
+    backgroundColor: palette.background,
+    borderRadius: 20,
+    padding: 12,
+  },
   androidPickerButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 16,
+    backgroundColor: palette.surface,
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  pickerLabel: {
+    color: palette.textMuted,
+    marginBottom: 4,
+  },
+  pickerValue: {
+    color: palette.text,
   },
 });
