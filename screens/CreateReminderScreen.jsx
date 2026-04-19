@@ -228,9 +228,7 @@ export default function CreateReminderScreen({ onAdd }) {
       >
         Save reminder
       </Button>
-      <Button mode="outlined" textColor={palette.secondary} style={styles.secondaryButton} contentStyle={styles.actionButtonContent}>
-        Speak a reminder
-      </Button>
+
     </ScrollView>
   );
 }
