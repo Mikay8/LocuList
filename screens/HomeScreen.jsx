@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Text, Button, Card, Chip } from 'react-native-paper';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UpdateReminderModal from '../components/UpdateReminderModal';
-import { elevation, palette } from '../theme/appTheme';
+import { palette } from '../theme/appTheme';
+import { homeScreenStyles as styles } from './LocationScreenDetail.styles';
 
 export default function HomeScreen({ reminders, onDelete, onUpdate }) {
   const insets = useSafeAreaInsets();
@@ -117,122 +118,3 @@ export default function HomeScreen({ reminders, onDelete, onUpdate }) {
     </ScrollView>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: palette.background,
-  },
-  content: {
-    gap: 18,
-  },
-  heroCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 28,
-    padding: 24,
-    ...elevation.card,
-  },
-  header: {
-    color: palette.text,
-    marginBottom: 10,
-  },
-  heroText: {
-    color: palette.textMuted,
-  },
-  heroStats: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: palette.background,
-    borderRadius: 22,
-    padding: 18,
-  },
-  statCardAccent: {
-    flex: 1,
-    backgroundColor: palette.primary,
-    borderRadius: 22,
-    padding: 18,
-  },
-  statValue: {
-    color: palette.text,
-  },
-  statValueAccent: {
-    color: palette.white,
-  },
-  statLabel: {
-    color: palette.textMuted,
-    marginTop: 4,
-  },
-  statLabelAccent: {
-    color: '#DDEEEF',
-    marginTop: 4,
-  },
-  sectionHeader: {
-    paddingTop: 6,
-  },
-  sectionTitle: {
-    color: palette.text,
-  },
-  sectionSubtitle: {
-    color: palette.textMuted,
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    marginBottom: 14,
-    ...elevation.card,
-  },
-  cardTitle: {
-    color: palette.text,
-  },
-  cardBody: {
-    color: palette.textMuted,
-    marginTop: 8,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 16,
-  },
-  metaChip: {
-    backgroundColor: palette.primarySoft,
-  },
-  metaChipText: {
-    color: palette.primary,
-    fontSize: 14,
-  },
-  cardActions: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 4,
-  },
-  actionButtonContent: {
-    minHeight: 48,
-    paddingHorizontal: 12,
-  },
-  actionLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  deleteButton: {
-    borderColor: '#E2B1AA',
-  },
-  emptyState: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    padding: 24,
-    ...elevation.card,
-  },
-  emptyTitle: {
-    color: palette.text,
-    marginBottom: 8,
-  },
-  emptyText: {
-    color: palette.textMuted,
-  },
-});
