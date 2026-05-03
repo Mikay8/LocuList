@@ -44,10 +44,12 @@ export function checkSavedLocationProximity({ currentPosition, locations, remind
 
 for (const reminder of reminders) {
 
+	//check reminder date greater then todays date
     const hasTime = !!reminder.dateTime;
 	if (hasTime && startOfDay(reminder.dateTime) > startOfDay(new Date())) continue;
 
 
+	//get location coordinates  and normalize them
 	const hasLocation = !!reminder.locationId;
 	if (hasLocation) {
 		const location = locations.find(l => l.id === reminder.locationId);
@@ -56,6 +58,7 @@ for (const reminder of reminders) {
 		const coords = normalizeCoords(location.location);
 		if (!coords) continue;
 
+		// use distance measure haversine formula to find shortest distance on sphere
 		const distance = distanceMeters(currentPosition, coords);
 		const state = proximityState.get(location.id) ?? { inside: false, lastNotifiedAt: 0 };
 		const onCooldown = Date.now() - state.lastNotifiedAt < COOLDOWN_MS;

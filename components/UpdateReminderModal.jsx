@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Text, TextInput, Button, Menu, Surface } from 'react-native-paper';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocations } from '../services/location';
-import { elevation, palette } from '../theme/appTheme';
+import { palette } from '../theme/appTheme';
+import { updateReminderModalStyles as styles } from '../screens/LocationScreenDetail.styles';
 
 const MOTION_ACTIVITIES = [
   'Walking',
@@ -192,42 +193,6 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
                   style={styles.iosPicker}
                 />
               )}
-
-              {Platform.OS === 'android' && (
-                <>
-                  <Pressable onPress={() => setShowDatePicker(true)} style={styles.androidPickerButton}>
-                    <Text variant="titleMedium" style={styles.pickerLabel}>Date</Text>
-                    <Text variant="bodyLarge" style={styles.pickerValue}>{selectedDateTime.toLocaleDateString()}</Text>
-                  </Pressable>
-                  {showDatePicker && (
-                    <DateTimePicker
-                      mode="date"
-                      value={selectedDateTime}
-                      onChange={(_, date) => {
-                        setShowDatePicker(false);
-                        if (date) setSelectedDateTime(date);
-                      }}
-                    />
-                  )}
-
-                  <Pressable onPress={() => setShowTimePicker(true)} style={styles.androidPickerButton}>
-                    <Text variant="titleMedium" style={styles.pickerLabel}>Time</Text>
-                    <Text variant="bodyLarge" style={styles.pickerValue}>
-                      {selectedDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </Text>
-                  </Pressable>
-                  {showTimePicker && (
-                    <DateTimePicker
-                      mode="time"
-                      value={selectedDateTime}
-                      onChange={(_, date) => {
-                        setShowTimePicker(false);
-                        if (date) setSelectedDateTime(date);
-                      }}
-                    />
-                  )}
-                </>
-              )}
             </View>
           )}
         </Surface>
@@ -249,95 +214,3 @@ export default function UpdateReminderModal({ visible, reminder, onSave, onClose
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: palette.background,
-  },
-  content: {
-    gap: 18,
-  },
-  heroCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 28,
-    padding: 24,
-    ...elevation.card,
-  },
-  title: {
-    color: palette.text,
-  },
-  subtitle: {
-    color: palette.textMuted,
-    marginTop: 8,
-  },
-  sectionCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    padding: 20,
-    ...elevation.card,
-  },
-  sectionTitle: {
-    color: palette.text,
-    marginBottom: 6,
-  },
-  sectionBody: {
-    color: palette.textMuted,
-    marginBottom: 18,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: palette.surface,
-  },
-  inputOutline: {
-    borderRadius: 18,
-    borderColor: palette.outline,
-  },
-  button: {
-    marginTop: 4,
-  },
-  primaryButtonContent: {
-    minHeight: 56,
-  },
-  primaryButtonLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    borderColor: palette.outline,
-  },
-  menuWrapper: {
-    marginBottom: 8,
-  },
-  dateToggleButton: {
-    marginTop: 4,
-    borderColor: palette.primary,
-    borderRadius: 18,
-  },
-  actionButtonContent: {
-    minHeight: 48,
-  },
-  iosPicker: {
-    marginBottom: 8,
-  },
-  pickerCard: {
-    marginTop: 16,
-    backgroundColor: palette.background,
-    borderRadius: 20,
-    padding: 12,
-  },
-  androidPickerButton: {
-    backgroundColor: palette.surface,
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  pickerLabel: {
-    color: palette.textMuted,
-    marginBottom: 4,
-  },
-  pickerValue: {
-    color: palette.text,
-  },
-});

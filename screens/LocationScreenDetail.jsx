@@ -3,13 +3,12 @@ import { useRoute } from '@react-navigation/native';
 import {
     SafeAreaView,
     Text,
-    StyleSheet,
     TouchableOpacity,
     Platform,
     Linking,
 } from 'react-native';
 import { Surface } from 'react-native-paper';
-import { elevation, palette } from '../theme/appTheme';
+import styles from './LocationScreenDetail.styles';
 
 export default function LocationScreenDetail(props) {
     const route = props.route || useRoute();
@@ -27,20 +26,12 @@ const openMaps = async () => {
     const coords = resolveCoords(location);
     let url = '';
 
-    if (address) {
+    
+        console.log('Opening maps with address:', address);
         if (Platform.OS === 'ios') {
             url = `http://maps.apple.com/?daddr=${encodeURIComponent(address)}`;
-        } else {
-            url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-        }
-    } else if (coords) {
-        const destination = `${coords.lat},${coords.lng}`;
-        if (Platform.OS === 'ios') {
-            url = `http://maps.apple.com/?daddr=${destination}`;
-        } else {
-            url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-        }
-    }
+        } 
+    
 
     if (!url) {
         return;
@@ -84,71 +75,3 @@ return (
     </SafeAreaView>
 );
 }
-
-const styles = StyleSheet.create({
-container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: palette.background,
-    gap: 18,
-},
-heroCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 28,
-    padding: 24,
-    ...elevation.card,
-},
-eyebrow: {
-    color: palette.secondary,
-    fontSize: 15,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 10,
-},
-title: {
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: '700',
-    color: palette.text,
-},
-subtitle: {
-    fontSize: 18,
-    lineHeight: 26,
-    color: palette.textMuted,
-    marginTop: 8,
-},
-locationCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    padding: 24,
-    ...elevation.card,
-},
-sectionLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: palette.textMuted,
-    marginBottom: 10,
-},
-locationText: {
-    fontSize: 20,
-    lineHeight: 30,
-    color: palette.text,
-    marginBottom: 20,
-},
-button: {
-    backgroundColor: palette.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 18,
-    alignItems: 'center',
-},
-buttonDisabled: {
-    backgroundColor: '#AABCBF',
-},
-buttonText: {
-    color: palette.white,
-    fontWeight: '700',
-    fontSize: 17,
-},
-});

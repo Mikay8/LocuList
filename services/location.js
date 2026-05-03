@@ -1,13 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const initialLocations = [
-	{ id: '1', title: 'Medicine Pick-up', subtitle: 'CSV Pharmacy', address: '123 Main St - Pharmacy' },
-	{ id: '2', title: 'Buy Groceries', subtitle: 'Walmart', address: '456 Supermarket Blvd - Walmart' },
-	{ id: '3', title: 'Gym', subtitle: 'LA Fitness', address: '789 Fitness Ave - Gym' },
-];
-
 const STORAGE_KEY = 'locations';
+const initialLocations = [];
 const listeners = new Set();
 let locationsState = initialLocations;
 let loadLocationsPromise = null;

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Text, TextInput, Button, Menu, Surface } from 'react-native-paper';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocations } from '../services/location';
-import { elevation, palette } from '../theme/appTheme';
+import { palette } from '../theme/appTheme';
+import { createReminderScreenStyles as styles } from './LocationScreenDetail.styles';
 
 const MOTION_ACTIVITIES = [
   'Walking',
@@ -232,95 +233,3 @@ export default function CreateReminderScreen({ onAdd }) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: palette.background,
-  },
-  content: {
-    gap: 18,
-  },
-  heroCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 28,
-    padding: 24,
-    ...elevation.card,
-  },
-  title: {
-    color: palette.text,
-  },
-  subtitle: {
-    color: palette.textMuted,
-    marginTop: 8,
-  },
-  sectionCard: {
-    backgroundColor: palette.surface,
-    borderRadius: 24,
-    padding: 20,
-    ...elevation.card,
-  },
-  sectionTitle: {
-    color: palette.text,
-    marginBottom: 6,
-  },
-  sectionBody: {
-    color: palette.textMuted,
-    marginBottom: 18,
-  },
-  input: {
-    marginBottom: 16,
-    backgroundColor: palette.surface,
-  },
-  inputOutline: {
-    borderRadius: 18,
-    borderColor: palette.outline,
-  },
-  button: {
-    marginTop: 4,
-  },
-  primaryButtonContent: {
-    minHeight: 56,
-  },
-  primaryButtonLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    borderColor: '#D8B794',
-  },
-  menuWrapper: {
-    marginBottom: 8,
-  },
-  dateToggleButton: {
-    marginTop: 4,
-    borderColor: palette.primary,
-    borderRadius: 18,
-  },
-  actionButtonContent: {
-    minHeight: 48,
-  },
-  iosPicker: {
-    marginBottom: 8,
-  },
-  pickerCard: {
-    marginTop: 16,
-    backgroundColor: palette.background,
-    borderRadius: 20,
-    padding: 12,
-  },
-  androidPickerButton: {
-    backgroundColor: palette.surface,
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  pickerLabel: {
-    color: palette.textMuted,
-    marginBottom: 4,
-  },
-  pickerValue: {
-    color: palette.text,
-  },
-});
