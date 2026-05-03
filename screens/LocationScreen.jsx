@@ -1,9 +1,10 @@
 import React from 'react';
 import { Text, Button, Card, Icon } from 'react-native-paper';
-import { StyleSheet, View, FlatList, Alert } from 'react-native';
+import { View, FlatList, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocations } from '../services/location';
-import { elevation, palette } from '../theme/appTheme';
+import { palette } from '../theme/appTheme';
+import { locationScreenStyles as styles } from './LocationScreenDetail.styles';
 
 export default function LocationScreen({ navigation }) {
         const insets = useSafeAreaInsets();
@@ -124,103 +125,3 @@ export default function LocationScreen({ navigation }) {
             </View>
         );
 }
-
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-        backgroundColor: palette.background,
-    },
-    heroCard: {
-        backgroundColor: palette.surface,
-        borderRadius: 28,
-        padding: 24,
-        marginBottom: 16,
-        ...elevation.card,
-    },
-    header: {
-        color: palette.text,
-    },
-    heroText: {
-        color: palette.textMuted,
-        marginTop: 8,
-    },
-    addButton: {
-        marginBottom: 16,
-        backgroundColor: palette.primary,
-    },
-    addButtonContent: {
-        minHeight: 54,
-    },
-    addButtonLabel: {
-        fontSize: 17,
-        fontWeight: '700',
-    },
-    listContent: {
-        paddingBottom: 12,
-    },
-    locationCard: {
-        backgroundColor: palette.surface,
-        borderRadius: 24,
-        ...elevation.card,
-    },
-    locationHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 14,
-    },
-    markerBadge: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: palette.primarySoft,
-    },
-    locationCopy: {
-        flex: 1,
-    },
-    locationTitle: {
-        color: palette.text,
-    },
-    locationSubtitle: {
-        color: palette.textMuted,
-        marginTop: 2,
-    },
-    locationAddress: {
-        color: palette.textMuted,
-        marginTop: 16,
-    },
-    actions: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingBottom: 16,
-        paddingTop: 4,
-    },
-    actionButtonContent: {
-        minHeight: 48,
-        paddingHorizontal: 10,
-    },
-    actionButtonLabel: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    deleteButton: {
-        borderColor: '#E2B1AA',
-    },
-    separator: {
-        height: 14,
-    },
-    emptyState: {
-        backgroundColor: palette.surface,
-        borderRadius: 24,
-        padding: 24,
-        ...elevation.card,
-    },
-    emptyTitle: {
-        color: palette.text,
-        marginBottom: 8,
-    },
-    emptyText: {
-        color: palette.textMuted,
-    }
-});

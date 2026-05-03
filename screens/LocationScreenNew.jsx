@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Text, TextInput, Button, Surface, ActivityIndicator, TouchableRipple } from 'react-native-paper';
 import * as Location from 'expo-location';
 import { useLocations } from '../services/location';
-import { elevation, palette } from '../theme/appTheme';
+import { palette } from '../theme/appTheme';
 import { fetchGoogleAddressSuggestions, hasGooglePlacesApiKey } from '../services/googlePlaces';
+import { locationScreenNewStyles as styles } from './LocationScreenDetail.styles';
 
 export default function LocationScreenNew({ navigation }) {
 	const [title, setTitle] = useState('');
@@ -154,34 +155,28 @@ export default function LocationScreenNew({ navigation }) {
 					outlineStyle={styles.inputOutline}
 				/>
 
-				{hasPlacesKey ? (
-					<View style={styles.autocompleteSection}>
-						<Text variant="bodyMedium" style={styles.helperText}>Start typing an address to see Google suggestions.</Text>
-						{autocompleteLoading ? (
-							<View style={styles.loadingRow}>
-								<ActivityIndicator size="small" color={palette.primary} />
-								<Text variant="bodyMedium" style={styles.loadingText}>Looking up addresses...</Text>
-							</View>
-						) : null}
-						{autocompleteError ? <Text variant="bodyMedium" style={styles.errorText}>{autocompleteError}</Text> : null}
-						{addressSuggestions.length > 0 ? (
-							<View style={styles.suggestionsCard}>
-								{addressSuggestions.map(suggestion => (
-									<TouchableRipple key={suggestion.id} onPress={() => selectSuggestion(suggestion)} borderless={false} style={styles.suggestionItem}>
-										<View>
-											<Text variant="titleMedium" style={styles.suggestionTitle}>{suggestion.title}</Text>
-											{!!suggestion.subtitle && <Text variant="bodyMedium" style={styles.suggestionSubtitle}>{suggestion.subtitle}</Text>}
-										</View>
-									</TouchableRipple>
-								))}
-							</View>
-						) : null}
-					</View>
-				) : (
-					<Text variant="bodyMedium" style={styles.helperText}>
-						Set EXPO_PUBLIC_GOOGLE_PLACES_API_KEY to enable Google address autocomplete.
-					</Text>
-				)}
+				<View style={styles.autocompleteSection}>
+					<Text variant="bodyMedium" style={styles.helperText}>Start typing an address to see Google suggestions.</Text>
+					{autocompleteLoading ? (
+						<View style={styles.loadingRow}>
+							<ActivityIndicator size="small" color={palette.primary} />
+							<Text variant="bodyMedium" style={styles.loadingText}>Looking up addresses...</Text>
+						</View>
+					) : null}
+					{autocompleteError ? <Text variant="bodyMedium" style={styles.errorText}>{autocompleteError}</Text> : null}
+					{addressSuggestions.length > 0 ? (
+						<View style={styles.suggestionsCard}>
+							{addressSuggestions.map(suggestion => (
+								<TouchableRipple key={suggestion.id} onPress={() => selectSuggestion(suggestion)} borderless={false} style={styles.suggestionItem}>
+									<View>
+										<Text variant="titleMedium" style={styles.suggestionTitle}>{suggestion.title}</Text>
+										{!!suggestion.subtitle && <Text variant="bodyMedium" style={styles.suggestionSubtitle}>{suggestion.subtitle}</Text>}
+									</View>
+								</TouchableRipple>
+							))}
+						</View>
+					) : null}
+				</View>
 
 				<Button mode="contained" onPress={saveLocation} loading={saving} disabled={saving} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
 					Save place
@@ -190,88 +185,3 @@ export default function LocationScreenNew({ navigation }) {
 		</View>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: palette.background,
-		padding: 20,
-		gap: 18,
-	},
-	heroCard: {
-		backgroundColor: palette.surface,
-		borderRadius: 28,
-		padding: 24,
-		...elevation.card,
-	},
-	header: {
-		color: palette.text,
-	},
-	heroText: {
-		color: palette.textMuted,
-		marginTop: 8,
-	},
-	formCard: {
-		backgroundColor: palette.surface,
-		borderRadius: 24,
-		padding: 20,
-		...elevation.card,
-	},
-	sectionTitle: {
-		color: palette.text,
-		marginBottom: 16,
-	},
-	input: {
-		marginBottom: 12,
-		backgroundColor: palette.surface,
-	},
-	autocompleteSection: {
-		marginBottom: 16,
-	},
-	helperText: {
-		color: palette.textMuted,
-		marginBottom: 10,
-	},
-	loadingRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		gap: 10,
-		marginBottom: 10,
-	},
-	loadingText: {
-		color: palette.textMuted,
-	},
-	errorText: {
-		color: palette.danger,
-		marginBottom: 10,
-	},
-	suggestionsCard: {
-		borderRadius: 18,
-		overflow: 'hidden',
-		borderWidth: 1,
-		borderColor: palette.surfaceVariant,
-		backgroundColor: palette.background,
-	},
-	suggestionItem: {
-		paddingHorizontal: 16,
-		paddingVertical: 14,
-	},
-	suggestionTitle: {
-		color: palette.text,
-	},
-	suggestionSubtitle: {
-		color: palette.textMuted,
-		marginTop: 2,
-	},
-	inputOutline: {
-		borderRadius: 18,
-		borderColor: palette.outline,
-	},
-	buttonContent: {
-		minHeight: 54,
-	},
-	buttonLabel: {
-		fontSize: 17,
-		fontWeight: '700',
-	},
-});
